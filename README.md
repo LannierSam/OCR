@@ -1,0 +1,2 @@
+# OCR
+Hostel renting system
