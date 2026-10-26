@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+
+{% block title %}{% block dashboard_title %}Dashboard{% endblock %} - OCR{% endblock %}
+
+{% block content %}
+<style>
+    /* Hide the base template nav */
+    body > nav { display: none !important; }
+
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.625rem 1rem;
+        border-radius: 0.5rem;
+        color: #94a3b8;
+        font-weight: 500;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+    }
+    .sidebar-link:hover {
+        color: #f1f5f9;
+        background-color: rgba(59, 130, 246, 0.12);
+    }
+    .sidebar-link.active {
+        color: #ffffff;
+        background: linear-gradient(135deg, #1A56DB, #1d4ed8);
+        box-shadow: 0 4px 12px rgba(26, 86, 219, 0.35);
+    }
+    .sidebar-link i { width: 20px; text-align: center; font-size: 1rem; }
+
+    .profile-dropdown {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: calc(100% + 0.5rem);
+        width: 220px;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+        z-index: 50;
+        overflow: hidden;
+    }
+    .profile-dropdown.open { display: block; }
+    .profile-dropdown a {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        color: #374151;
+        font-size: 0.875rem;
+        transition: background-color 0.15s;
+    }
+    .profile-dropdown a:hover { background-color: #f3f4f6; }
+    .profile-dropdown hr { border-color: #e5e7eb; margin: 0; }
+</style>
+
+<div class="flex min-h-screen" style="background-color: #F9FAFB;">
+
+    <!-- ========== SIDEBAR ========== -->
+    <aside class="w-64 flex flex-col justify-between fixed left-0 top-0 h-screen text-white" style="background-color: #0f172a; z-index: 40;">
+        <div>
+            <!-- Logo -->
+            <div class="flex items-center gap-3 px-6 py-6 border-b border-slate-800">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg">
+                    <i class="fas fa-home text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white leading-tight">OCR</h1>
+                    <p class="text-[11px] text-slate-400 leading-tight">
+                        {% if user.role == 'landlord' %}Landlord Portal
+                        {% elif user.role == 'student' %}Student Portal
+                        {% else %}Admin Panel{% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="px-4 py-6 space-y-1">
+                <p class="px-3 pb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Main</p>
+
+                <!-- Dashboard (all roles) -->
+                {% if user.role == 'landlord' %}
+                <a href="{% url 'landlord_dashboard' %}" class="sidebar-link {% block nav_dashboard %}{% endblock %}">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+                {% elif user.role == 'student' %}
+                <a href="{% url 'student_dashboard' %}" class="sidebar-link {% block nav_dashboard %}{% endblock %}">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+                {% else %}
+                <a href="{% url 'admin:index' %}" class="sidebar-link {% block nav_dashboard %}{% endblock %}">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+                {% endif %}
+
+                <!-- Properties -->
+                {% if user.role == 'landlord' %}
+                <a href="{% url 'landlord_properties' %}" class="sidebar-link {% block nav_properties %}{% endblock %}">
+                    <i class="fas fa-building"></i> My Properties
+                </a>
+                <a href="{% url 'add_property' %}" class="sidebar-link {% block nav_add_property %}{% endblock %}">
+                    <i class="fas fa-plus-circle"></i> Add Property
+                </a>
+                {% elif user.role == 'student' %}
+                <a href="{% url 'property_list' %}" class="sidebar-link {% block nav_properties %}{% endblock %}">
+                    <i class="fas fa-search"></i> Browse Properties
+                </a>
+                {% else %}
+                <a href="{% url 'admin_properties' %}" class="sidebar-link {% block nav_properties %}{% endblock %}">
+                    <i class="fas fa-building"></i> Properties
+                </a>
+                {% endif %}
+
+                <!-- Tenants / Applications -->
+                <p class="px-3 pt-4 pb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Management</p>
+
+                {% if user.role == 'landlord' %}
+                <a href="{% url 'landlord_applications' %}" class="sidebar-link {% block nav_applications %}{% endblock %}">
+                    <i class="fas fa-file-alt"></i> Applications
+                </a>
+                {% elif user.role == 'student' %}
+                <a href="{% url 'student_applications' %}" class="sidebar-link {% block nav_applications %}{% endblock %}">
+                    <i class="fas fa-file-alt"></i> My Applications
+                </a>
+                {% else %}
+                <a href="{% url 'admin_applications' %}" class="sidebar-link {% block nav_applications %}{% endblock %}">
+                    <i class="fas fa-file-alt"></i> Applications
+                </a>
+                {% endif %}
+
+                <!-- Messages (all roles) -->
+                <a href="{% url 'messages_list' %}" class="sidebar-link {% block nav_messages %}{% endblock %}">
+                    <i class="fas fa-comments"></i> Messages
+                </a>
+
+                <!-- Admin only -->
+                {% if user.role == 'admin' %}
+                <a href="/admin/" target="_blank" class="sidebar-link">
+                    <i class="fas fa-tools"></i> Django Admin
+                </a>
+                {% endif %}
+
+                <!-- Account -->
+                <p class="px-3 pt-4 pb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Account</p>
+
+                {% if user.role == 'landlord' %}
+                <a href="{% url 'landlord_profile' %}" class="sidebar-link {% block nav_account %}{% endblock %}">
+                    <i class="fas fa-user-cog"></i> Settings
+                </a>
+                {% elif user.role == 'student' %}
+                <a href="{% url 'student_profile' %}" class="sidebar-link {% block nav_account %}{% endblock %}">
+                    <i class="fas fa-user-cog"></i> Settings
+                </a>
+                {% endif %}
+            </nav>
+        </div>
+
+        <!-- Sidebar Bottom -->
+        <div class="px-4 pb-6">
+        </div>
+    </aside>
+
+    <!-- ========== MAIN AREA ========== -->
+    <div class="ml-64 flex-1 flex flex-col min-h-screen">
+
+        <!-- Top Navbar -->
+        <header class="sticky top-0 z-30 bg-white border-b border-gray-200" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <div class="flex items-center justify-between h-16 px-8">
+                <!-- Search Bar -->
+                <div class="relative w-80">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                    <input type="text" placeholder="Search properties, tenants..."
+                           class="w-full pl-10 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+                </div>
+
+                <!-- Right Side -->
+                <div class="flex items-center gap-4">
+                    <!-- Notifications -->
+                    <button class="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                        <i class="fas fa-bell text-lg"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+
+                    <!-- Profile Dropdown -->
+                    <div class="relative">
+                        <button onclick="toggleDropdown()" class="flex items-center gap-3 pl-3 pr-1 py-1 hover:bg-gray-50 rounded-lg transition">
+                            <div class="text-right">
+                                <p class="text-sm font-semibold text-gray-800 leading-tight">
+                                    {% if user.role == 'landlord' %}{{ user.landlord_profile.full_name|default:user.email }}
+                                    {% elif user.role == 'student' %}{{ user.student_profile.first_name|default:user.email }}
+                                    {% else %}Admin{% endif %}
+                                </p>
+                                <p class="text-[11px] text-gray-500 capitalize">{{ user.role }}</p>
+                            </div>
+                            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-semibold text-sm shadow">
+                                {% if user.role == 'landlord' %}{{ user.landlord_profile.full_name|default:"L"|make_list|first }}
+                                {% elif user.role == 'student' %}{{ user.student_profile.first_name|default:"S"|make_list|first }}
+                                {% else %}A{% endif %}
+                            </div>
+                            <i class="fas fa-chevron-down text-xs text-gray-400 mr-1"></i>
+                        </button>
+
+                        <div id="profileDropdown" class="profile-dropdown">
+                            <div class="px-4 py-3 border-b border-gray-100">
+                                <p class="text-sm font-semibold text-gray-800">
+                                    {% if user.role == 'landlord' %}{{ user.landlord_profile.full_name|default:user.email }}
+                                    {% elif user.role == 'student' %}{{ user.student_profile.first_name|default:user.email }}
+                                    {% else %}Admin{% endif %}
+                                </p>
+                                <p class="text-xs text-gray-500">{{ user.email }}</p>
+                            </div>
+                            <a href="{% if user.role == 'landlord' %}{% url 'landlord_profile' %}{% elif user.role == 'student' %}{% url 'student_profile' %}{% else %}#{% endif %}">
+                                <i class="fas fa-user text-gray-400"></i> Profile
+                            </a>
+                            <a href="#"><i class="fas fa-cog text-gray-400"></i> Settings</a>
+                            <hr>
+                            <a href="{% url 'logout' %}" class="text-red-600 hover:bg-red-50">
+                                <i class="fas fa-sign-out-alt text-red-500"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="flex-1 p-8">
+            {% block dashboard_content %}{% endblock %}
+        </main>
+    </div>
+</div>
+
+<script>
+function toggleDropdown() {
+    document.getElementById('profileDropdown').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('[onclick="toggleDropdown()"]');
+    const dropdown = document.getElementById('profileDropdown');
+    if (!btn && !e.target.closest('#profileDropdown')) {
+        dropdown.classList.remove('open');
+    }
+});
+</script>
+{% endblock %}

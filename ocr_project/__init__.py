@@ -1,0 +1,3 @@
+"""
+OCR Project package initialization.
+"""

@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Properties - OCR Management System{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-12 py-12">
+    <!-- Header -->
+    <div class="mb-10">
+        <h1 class="text-3xl font-bold text-blue-900">Available Properties</h1>
+        <p class="text-gray-500 mt-2">Find your perfect off-campus accommodation</p>
+    </div>
+    
+    {% if properties %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for property in properties %}
+        <div class="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 overflow-hidden group">
+            <!-- Property Image -->
+            <div class="relative h-48 overflow-hidden">
+                {% if property.image %}
+                <img src="{{ property.image.url }}" alt="{{ property.property_name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                {% else %}
+                <div class="w-full h-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
+                    <i class="fas fa-building text-white text-5xl"></i>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Property Details -->
+            <div class="p-5">
+                <h3 class="font-bold text-lg text-blue-900 mb-2 group-hover:text-blue-600 transition">{{ property.property_name }}</h3>
+                <div class="flex items-center gap-2 text-gray-500 text-sm mb-3">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>{{ property.location }}</span>
+                </div>
+                <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+                    <div>
+                        <span class="text-2xl font-bold text-blue-600">GH₵ {{ property.price }}</span>
+                        <span class="text-gray-400 text-sm">/month</span>
+                    </div>
+                    <a href="{% url 'property_detail' property_id=property.id %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition btn-hover">
+                        View
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
+        <div class="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-home text-blue-600 text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-bold text-blue-900 mb-2">No Properties Available</h3>
+        <p class="text-gray-500">Check back later for available properties.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

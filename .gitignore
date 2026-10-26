@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+
+# Django
+db.sqlite3
+media/
+staticfiles/
+
+# Local tooling and machine-specific files
+.vscode/
+python-installer.exe
+nul
+
+# Environment variables
+.env
+.env.*
+!.env.example

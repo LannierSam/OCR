@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}Messages - OCR Management System{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<style>
+    .sidebar-hover { transition: all 0.3s ease; }
+    .sidebar-hover:hover { background-color: rgba(26, 86, 219, 0.12); padding-left: 1.5rem; }
+    .sidebar-link { transition: all 0.2s ease; }
+    .sidebar-link.active { background: linear-gradient(135deg, #1A56DB, #1d4ed8); box-shadow: 0 4px 12px rgba(26, 86, 219, 0.35); }
+    body > nav { display: none !important; }
+    
+    .chat-container::-webkit-scrollbar { width: 6px; }
+    .chat-container::-webkit-scrollbar-track { background: transparent; }
+    .chat-container::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+    
+    .chat-item:hover { background-color: #f5f6f6; }
+    
+    .chat-bg-empty {
+        background-color: #f0f2f5;
+        border-bottom: 6px solid #43bc70;
+    }
+</style>
+
+<div class="flex h-screen overflow-hidden" style="background-color: #f0f2f5;">
+
+    <!-- Left Sidebar (App Navigation) -->
+    <aside class="w-16 lg:w-64 flex flex-col justify-between h-screen text-white flex-shrink-0" style="background-color: #111827; z-index: 50;">
+        <div>
+            <div class="flex items-center gap-3 px-3 lg:px-6 py-6 border-b border-gray-800">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, #1A56DB, #3B82F6);">
+                    <i class="fas fa-home text-white text-lg"></i>
+                </div>
+                <div class="hidden lg:block">
+                    <h1 class="text-xl font-bold text-white leading-tight">OCR</h1>
+                    <p class="text-[11px] text-gray-400">{% if request.user.role == 'landlord' %}Landlord{% else %}Student{% endif %} Portal</p>
+                </div>
+            </div>
+
+            <nav class="px-2 lg:px-4 py-6 space-y-1">
+                <a href="{% if request.user.role == 'landlord' %}{% url 'landlord_dashboard' %}{% else %}{% url 'student_dashboard' %}{% endif %}" 
+                   class="flex items-center justify-center lg:justify-start gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:text-white sidebar-hover" title="Dashboard">
+                    <i class="fas fa-th-large w-5 text-center"></i> <span class="hidden lg:block text-sm font-medium">Dashboard</span>
+                </a>
+                <a href="{% url 'messages_list' %}" class="sidebar-link active flex items-center justify-center lg:justify-start gap-3 px-3 py-2.5 rounded-lg text-white" title="Messages">
+                    <i class="fas fa-comments w-5 text-center"></i> <span class="hidden lg:block text-sm font-medium">Messages</span>
+                </a>
+            </nav>
+        </div>
+        <div class="px-2 lg:px-4 pb-6">
+            <a href="{% url 'logout' %}" class="flex items-center justify-center lg:justify-start gap-2 text-gray-400 hover:text-white transition font-medium" title="Logout">
+                <i class="fas fa-sign-out-alt lg:mr-2"></i> <span class="hidden lg:block">Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Chat Interface -->
+    <div class="flex-1 flex overflow-hidden">
+        
+        <!-- Chat List -->
+        <div class="w-full md:w-80 lg:w-[400px] flex-col bg-white border-r border-gray-200 flex">
+            <!-- Search Header -->
+            <div class="p-4 bg-[#f0f2f5]">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-bold">
+                        {{ request.user.email|slice:":1"|upper }}
+                    </div>
+                    <div class="flex gap-4 text-gray-500 text-lg">
+                        <i class="fas fa-circle-notch cursor-pointer"></i>
+                        <i class="fas fa-comment-alt cursor-pointer"></i>
+                        <i class="fas fa-ellipsis-v cursor-pointer"></i>
+                    </div>
+                </div>
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                    <input type="text" placeholder="Search or start new chat" 
+                           class="w-full pl-10 pr-4 py-2 bg-white border-none rounded-lg focus:ring-0 text-sm placeholder-gray-500">
+                </div>
+            </div>
+            
+            <!-- Conversation List -->
+            <div class="flex-1 overflow-y-auto chat-container">
+                {% if conversations %}
+                    {% for conv in conversations %}
+                    <a href="{% url 'conversation' user_id=conv.user.id %}" 
+                       class="flex items-center gap-3 px-4 py-3 border-b border-gray-100 chat-item">
+                        <div class="relative flex-shrink-0">
+                            <div class="w-12 h-12 rounded-full flex items-center justify-center text-white text-lg font-bold" style="background: #93a3b1;">
+                                {{ conv.user.email|slice:":1"|upper }}
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-[16px] text-[#111b21] font-normal truncate">
+                                    {% if conv.user.is_student %}
+                                        {{ conv.user.student_profile.first_name }} {{ conv.user.student_profile.last_name }}
+                                    {% elif conv.user.is_landlord %}
+                                        {{ conv.user.landlord_profile.full_name|default:conv.user.email }}
+                                    {% else %}
+                                        {{ conv.user.email }}
+                                    {% endif %}
+                                </h3>
+                                <span class="text-[12px] text-gray-500">{{ conv.last_message.timestamp|date:"D" }}</span>
+                            </div>
+                            <div class="flex items-center justify-between mt-1">
+                                <p class="text-[14px] text-gray-500 truncate flex items-center gap-1">
+                                    {% if conv.last_message.sender_user == request.user %}
+                                    <i class="fas fa-check-double text-[12px] text-blue-400"></i>
+                                    {% endif %}
+                                    {{ conv.last_message.content }}
+                                </p>
+                                {% if conv.unread > 0 %}
+                                <span class="bg-[#25d366] text-white text-[12px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                                    {{ conv.unread }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                {% else %}
+                    <div class="flex flex-col items-center justify-center h-full p-8 text-center text-gray-400">
+                        <i class="far fa-comments text-5xl mb-4"></i>
+                        <p class="text-sm">No conversations yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Pane: Empty State -->
+        <div class="hidden md:flex flex-1 flex-col items-center justify-center chat-bg-empty">
+            <div class="text-center max-w-md px-8">
+                <div class="mb-8 flex justify-center">
+                    <div class="w-32 h-32 rounded-full bg-white flex items-center justify-center shadow-sm">
+                        <i class="fas fa-laptop text-6xl text-gray-200"></i>
+                    </div>
+                </div>
+                <h2 class="text-3xl font-light text-gray-600 mb-4">OCR for Web</h2>
+                <p class="text-gray-500 text-sm leading-relaxed mb-10">
+                    Send and receive messages without keeping your phone online. <br>
+                    Use OCR on up to 4 linked devices and 1 phone at the same time.
+                </p>
+                <div class="flex items-center justify-center gap-2 text-xs text-gray-400">
+                    <i class="fas fa-lock"></i>
+                    End-to-end encrypted
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

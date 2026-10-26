@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Property - OCR Management System{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-12 py-12">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-sm mb-8">
+        <a href="{% url 'landlord_properties' %}" class="text-blue-600 hover:text-blue-700 font-medium">
+            <i class="fas fa-arrow-left mr-1"></i> My Properties
+        </a>
+    </nav>
+    
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-blue-900">Edit Property</h1>
+        <p class="text-gray-500 mt-2">Update your property information</p>
+    </div>
+    
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-md">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-circle text-red-500 mt-0.5"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-red-800">Please correct the following errors:</h3>
+                        <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li><strong>{{ field.label|default:field.name }}:</strong> {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Basic Info -->
+            <div class="pb-6 border-b border-gray-100">
+                <h3 class="font-bold text-lg text-blue-900 mb-4">Basic Information</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="id_property_name" class="block text-sm font-medium text-gray-700 mb-2">Property Name</label>
+                        <input type="text" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition" 
+                               id="id_property_name" name="property_name" value="{{ property.property_name }}" required>
+                    </div>
+                    <div>
+                        <label for="id_location" class="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                        <input type="text" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition" 
+                               id="id_location" name="location" value="{{ property.location }}" required>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Room Details -->
+            <div class="pb-6 border-b border-gray-100">
+                <h3 class="font-bold text-lg text-blue-900 mb-4">Room Details</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                        <label for="id_room_type" class="block text-sm font-medium text-gray-700 mb-2">Room Type</label>
+                        <select class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition" 
+                                id="id_room_type" name="room_type" required>
+                            <option value="single" {% if property.room_type == 'single' %}selected{% endif %}>Single Room</option>
+                            <option value="double" {% if property.room_type == 'double' %}selected{% endif %}>Double Room</option>
+                            <option value="self_contained" {% if property.room_type == 'self_contained' %}selected{% endif %}>Self-Contained</option>
+                            <option value="shared" {% if property.room_type == 'shared' %}selected{% endif %}>Shared Room</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="id_price" class="block text-sm font-medium text-gray-700 mb-2">Price (GH₵)</label>
+                        <input type="number" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition" 
+                               id="id_price" name="price" step="0.01" value="{{ property.price }}" required>
+                    </div>
+                    <div>
+                        <label for="id_total_rooms" class="block text-sm font-medium text-gray-700 mb-2">Total Rooms</label>
+                        <input type="number" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition" 
+                               id="id_total_rooms" name="total_rooms" value="{{ property.total_rooms }}" required>
+                    </div>
+                    <div>
+                        <label for="id_available_rooms" class="block text-sm font-medium text-gray-700 mb-2">Available</label>
+                        <input type="number" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition" 
+                               id="id_available_rooms" name="available_rooms" value="{{ property.available_rooms }}" required>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Description & Facilities -->
+            <div class="pb-6 border-b border-gray-100">
+                <h3 class="font-bold text-lg text-blue-900 mb-4">Description & Facilities</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label for="id_description" class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <textarea class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition" 
+                                  id="id_description" name="description" rows="4" required>{{ property.description }}</textarea>
+                    </div>
+                    <div>
+                        <label for="id_facilities" class="block text-sm font-medium text-gray-700 mb-2">Facilities</label>
+                        <textarea class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition" 
+                                  id="id_facilities" name="facilities" rows="2">{{ property.facilities }}</textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Image -->
+            <div>
+                <h3 class="font-bold text-lg text-blue-900 mb-4">Property Image</h3>
+                <div class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-blue-400 transition cursor-pointer">
+                    <input type="file" class="hidden" id="id_image" name="image" accept="image/*,video/*" multiple>
+                    <label for="id_image" class="cursor-pointer">
+                        <div class="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-cloud-upload-alt text-blue-600 text-2xl"></i>
+                        </div>
+                        <p class="text-gray-600 font-medium">Click to change media</p>
+                        {% if property.image %}
+                        <p class="text-gray-400 text-sm mt-1">Current: {{ property.image.name }}</p>
+                        {% endif %}
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Submit -->
+            <div class="flex justify-end gap-4">
+                <a href="{% url 'landlord_properties' %}" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-bold transition">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold transition btn-hover">
+                    <i class="fas fa-save mr-2"></i>Update Property
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('id_image').addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            let text = '';
+            if (e.target.files.length === 1) {
+                text = 'Selected: ' + e.target.files[0].name;
+            } else {
+                text = 'Selected: ' + e.target.files.length + ' files';
+            }
+            const textElem = this.nextElementSibling.querySelector('p.text-gray-600');
+            if (textElem) {
+                textElem.textContent = text;
+                textElem.classList.remove('text-gray-600');
+                textElem.classList.add('text-green-600');
+            }
+        }
+    });
+</script>
+{% endblock %}

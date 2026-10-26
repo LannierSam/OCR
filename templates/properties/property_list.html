@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+
+{% block title %}Browse Properties - OCR Management System{% endblock %}
+
+{% block content %}
+<style>
+    .sidebar-hover { transition: all 0.3s ease; }
+    .sidebar-hover:hover { background-color: rgba(26, 86, 219, 0.12); padding-left: 1.5rem; }
+    .sidebar-link { transition: all 0.2s ease; }
+    .sidebar-link.active { background: linear-gradient(135deg, #1A56DB, #1d4ed8); box-shadow: 0 4px 12px rgba(26, 86, 219, 0.35); }
+    body > nav { display: none !important; }
+    .card-padding { padding: 1.5rem; }
+    .card-radius { border-radius: 1.5rem; }
+    .button-radius { border-radius: 0.75rem; }
+</style>
+<div class="flex min-h-screen" style="background-color: #F9FAFB;">
+
+    <!-- Sidebar -->
+    <aside class="w-64 flex flex-col justify-between fixed left-0 top-0 h-screen text-white" style="background-color: #111827; z-index: 40;">
+        <div>
+            <div class="flex items-center gap-3 px-6 py-6 border-b border-gray-800">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #1A56DB, #3B82F6);">
+                    <i class="fas fa-home text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white leading-tight">OCR</h1>
+                    <p class="text-[11px] text-gray-400">Student Portal</p>
+                </div>
+            </div>
+
+            <nav class="px-4 py-6 space-y-1">
+                <p class="px-3 pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Main</p>
+                <a href="{% url 'student_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'student_dashboard' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-th-large w-5 text-center"></i> Dashboard
+                </a>
+
+                <p class="px-3 pt-4 pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Housing</p>
+                <a href="{% url 'property_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'property_list' or request.resolver_match.url_name == 'property_detail' or request.resolver_match.url_name == 'apply_property' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-search w-5 text-center"></i> Browse Properties
+                </a>
+                <a href="{% url 'student_applications' %}" class="sidebar-link {% if request.resolver_match.url_name == 'student_applications' or request.resolver_match.url_name == 'student_allocations' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-file-alt w-5 text-center"></i> My Applications
+                </a>
+
+                <p class="px-3 pt-4 pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Account</p>
+                <a href="{% url 'messages_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'messages_list' or request.resolver_match.url_name == 'conversation' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-comments w-5 text-center"></i> Messages
+                </a>
+                <a href="{% url 'student_profile' %}" class="sidebar-link {% if request.resolver_match.url_name == 'student_profile' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-user-cog w-5 text-center"></i> Settings
+                </a>
+            </nav>
+        </div>
+        <div class="px-4 pb-6">
+            <a href="{% url 'logout' %}" class="flex items-center justify-center gap-2 text-gray-400 hover:text-white transition font-medium">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="ml-64 flex-1 flex flex-col min-h-screen">
+        
+        <div class="px-8 py-10 max-w-[1200px] mx-auto">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-10">
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight">Find Your Next Home</h1>
+                    <p class="text-gray-500 mt-2 text-lg font-medium">Browse our curated list of student-friendly accommodations</p>
+                </div>
+            </div>
+            
+            <!-- Professional Search and Filter Bar -->
+            <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 p-8 mb-10">
+                <form method="get" class="grid grid-cols-1 md:grid-cols-6 gap-6 items-end">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Search Properties</label>
+                        <div class="relative">
+                            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-300"></i>
+                            <input type="text" name="search" class="w-full pl-11 pr-4 py-3.5 rounded-xl bg-slate-50 border border-transparent focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-300" placeholder="Location or name..." value="{{ request.GET.search }}">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Room Type</label>
+                        <select name="room_type" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 border border-transparent focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-300 appearance-none">
+                            <option value="">All Types</option>
+                            <option value="single" {% if request.GET.room_type == 'single' %}selected{% endif %}>Single Room</option>
+                            <option value="double" {% if request.GET.room_type == 'double' %}selected{% endif %}>Double Room</option>
+                            <option value="self_contained" {% if request.GET.room_type == 'self_contained' %}selected{% endif %}>Self-Contained</option>
+                            <option value="shared" {% if request.GET.room_type == 'shared' %}selected{% endif %}>Shared Room</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Min Price</label>
+                        <input type="number" name="min_price" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 border border-transparent focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all" placeholder="0" value="{{ request.GET.min_price }}">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Max Price</label>
+                        <input type="number" name="max_price" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 border border-transparent focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all" placeholder="5000" value="{{ request.GET.max_price }}">
+                    </div>
+                    <div>
+                        <button type="submit" class="w-full py-3.5 bg-[#4353FF] hover:bg-[#3242ee] text-white rounded-xl font-bold shadow-lg shadow-blue-100 hover:shadow-xl transition-all">
+                            <i class="fas fa-sliders-h mr-2"></i>Apply Filters
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Property Grid (Matching Premium Card Design) -->
+            {% if properties %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {% for property in properties %}
+                <div class="bg-white rounded-[24px] shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden group flex flex-col h-full">
+                    <!-- Property Image & Badges -->
+                    <div class="relative h-56 overflow-hidden">
+                        {% if property.get_thumbnail %}
+                            {% if property.thumbnail_is_video %}
+                            <video src="{{ property.get_thumbnail }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" autoplay muted loop></video>
+                            <div class="absolute top-3 left-3">
+                                <span class="bg-blue-500/90 backdrop-blur-sm text-white px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">Video Tour</span>
+                            </div>
+                            {% else %}
+                            <img src="{{ property.get_thumbnail }}" alt="{{ property.property_name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                            {% endif %}
+                        {% else %}
+                        <div class="w-full h-full bg-slate-50 flex items-center justify-center">
+                            <i class="fas fa-home text-slate-200 text-5xl"></i>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Multiple Images Indicator & Gallery Preview -->
+                        {% if property.media_files.all %}
+                        <div class="absolute bottom-3 right-3 flex flex-col items-end gap-2">
+                            <div class="flex gap-1">
+                                {% for media in property.media_files.all|slice:":2" %}
+                                <div class="w-8 h-8 rounded-lg border border-white/50 overflow-hidden shadow-sm">
+                                    {% if media.is_video %}
+                                    <div class="w-full h-full bg-slate-900 flex items-center justify-center"><i class="fas fa-play text-[8px] text-white"></i></div>
+                                    {% else %}
+                                    <img src="{{ media.file.url }}" class="w-full h-full object-cover">
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                                {% if property.media_files.count > 2 %}
+                                <div class="w-8 h-8 rounded-lg bg-black/60 backdrop-blur-sm flex items-center justify-center text-[10px] text-white font-bold">
+                                    +{{ property.media_files.count|add:"-2" }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="bg-black/50 backdrop-blur-md text-white px-2 py-1 rounded-lg text-[9px] font-bold flex items-center gap-1">
+                                <i class="fas fa-images"></i>
+                                {{ property.media_files.count|add:1 }} Media
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="absolute top-3 right-3">
+                            {% if property.available_rooms > 0 %}
+                            <span class="bg-emerald-500 text-white px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-sm">Available</span>
+                            {% else %}
+                            <span class="bg-red-500 text-white px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-sm">Fully Booked</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Landlord Avatar (Floating) -->
+                        <div class="absolute bottom-3 left-3 flex items-center gap-2 bg-white/90 backdrop-blur-sm p-1.5 rounded-xl shadow-lg border border-white/20">
+                            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-[10px] font-black shadow-inner">
+                                {{ property.landlord.landlord_profile.full_name|default:"L"|make_list|first }}
+                            </div>
+                            <div class="pr-2">
+                                <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter leading-none">Landlord</p>
+                                <p class="text-[10px] text-slate-900 font-black leading-tight">{{ property.landlord.landlord_profile.full_name|default:property.landlord.email|truncatechars:15 }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Property Details -->
+                    <div class="p-6 flex-1 flex flex-col">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-bold text-gray-900 text-lg group-hover:text-blue-600 transition-colors duration-300 leading-tight truncate pr-4">{{ property.property_name }}</h4>
+                            <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">{{ property.get_room_type_display }}</span>
+                        </div>
+                        
+                        <div class="flex items-center gap-2 text-gray-400 text-xs mt-1">
+                            <i class="fas fa-map-marker-alt text-gray-300"></i>
+                            <span class="truncate font-medium">{{ property.location }}</span>
+                        </div>
+                        
+                        <div class="flex items-center gap-4 mt-5 text-gray-400 text-[11px] font-bold uppercase tracking-widest">
+                            <div class="flex items-center gap-1.5"><i class="fas fa-bed"></i> <span>{{ property.total_rooms }} Rooms</span></div>
+                            <div class="flex items-center gap-1.5"><i class="fas fa-bath"></i> <span>1 Bath</span></div>
+                        </div>
+                        
+                        <div class="mt-auto pt-6 flex items-center justify-between border-t border-gray-50">
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-blue-600 font-extrabold text-2xl">GH₵ {{ property.price }}</span>
+                                <span class="text-gray-400 text-sm font-medium">/mo</span>
+                            </div>
+                            <a href="{% url 'property_detail' property_id=property.id %}" class="px-5 py-2.5 bg-slate-50 hover:bg-[#4353FF] text-gray-700 hover:text-white rounded-xl text-xs font-bold transition-all duration-300">
+                                View
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="bg-white rounded-[32px] border-2 border-dashed border-gray-100 p-16 text-center">
+                <div class="bg-slate-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-search text-slate-300 text-3xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-800 mb-2">No Results Found</h3>
+                <p class="text-gray-500 font-medium">Try adjusting your filters or search terms.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,276 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Property - OCR Management System{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<style>
+    .sidebar-hover { transition: all 0.3s ease; }
+    .sidebar-hover:hover { background-color: rgba(29,78,216,0.1); padding-left: 1.5rem; }
+    body > nav { display: none !important; }
+</style>
+
+<div class="flex min-h-screen" style="background-color: #F9FAFB;">
+
+    <!-- Sidebar -->
+    <aside class="w-64 flex flex-col justify-between fixed left-0 top-0 h-screen text-white" style="background-color: #111827; z-index: 40;">
+        <div>
+            <div class="flex items-center gap-3 px-6 py-6 border-b border-gray-800">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #1A56DB, #3B82F6);">
+                    <i class="fas fa-home text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white leading-tight">OCR</h1>
+                    <p class="text-[11px] text-gray-400">Landlord Portal</p>
+                </div>
+            </div>
+
+            <nav class="px-4 py-6 space-y-1">
+                <p class="px-3 pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Main</p>
+                <a href="{% url 'landlord_dashboard' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover">
+                    <i class="fas fa-th-large w-5 text-center"></i> Dashboard
+                </a>
+
+                <p class="px-3 pt-4 pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Properties</p>
+                <a href="{% url 'add_property' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium" style="background: linear-gradient(135deg, #1A56DB, #3B82F6); color: #fff; box-shadow: 0 4px 12px rgba(29,78,216,0.35);">
+                    <i class="fas fa-plus-circle w-5 text-center"></i> Add Property
+                </a>
+                <a href="{% url 'landlord_properties' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover">
+                    <i class="fas fa-building w-5 text-center"></i> My Properties
+                </a>
+
+                <p class="px-3 pt-4 pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Management</p>
+                <a href="{% url 'landlord_applications' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover">
+                    <i class="fas fa-file-alt w-5 text-center"></i> Applications
+                </a>
+                <a href="{% url 'messages_list' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover">
+                    <i class="fas fa-comments w-5 text-center"></i> Messages
+                </a>
+
+                <p class="px-3 pt-4 pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Account</p>
+                <a href="{% url 'landlord_profile' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover">
+                    <i class="fas fa-user-cog w-5 text-center"></i> Settings
+                </a>
+            </nav>
+        </div>
+
+        <div class="px-4 pb-6">
+            <a href="{% url 'logout' %}" class="flex items-center justify-center gap-2 text-gray-400 hover:text-white transition font-medium">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="ml-64 flex-1 flex flex-col min-h-screen">
+
+        <!-- Top Navbar -->
+        <header class="sticky top-0 z-30 bg-white border-b border-gray-200" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <div class="flex items-center justify-between h-16 px-8">
+                <div class="relative w-80">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                    <input type="text" placeholder="Search..."
+                           class="w-full pl-10 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+                </div>
+                <div class="flex items-center gap-4">
+                    <button class="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                        <i class="fas fa-bell text-lg"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                    <a href="{% url 'logout' %}" class="text-sm font-medium text-gray-600 hover:text-gray-800">Logout</a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="flex-1 p-8">
+            <div class="max-w-7xl mx-auto">
+                <!-- Header -->
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold" style="color: #1F2937;">Add New Property</h1>
+                    <p class="mt-2" style="color: #6B7280;">List your property for students to discover</p>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Form -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                                {% csrf_token %}
+                                
+                                {% if form.errors %}
+                                <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-md">
+                                    <div class="flex">
+                                        <div class="flex-shrink-0">
+                                            <i class="fas fa-exclamation-circle text-red-500 mt-0.5"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h3 class="text-sm font-medium text-red-800">Please correct the following errors:</h3>
+                                            <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
+                                                {% for field in form %}
+                                                    {% for error in field.errors %}
+                                                        <li><strong>{{ field.label|default:field.name }}:</strong> {{ error }}</li>
+                                                    {% endfor %}
+                                                {% endfor %}
+                                                {% for error in form.non_field_errors %}
+                                                    <li>{{ error }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                <!-- Basic Info -->
+                                <div class="pb-6 border-b border-gray-100">
+                                    <h3 class="font-bold text-lg mb-4" style="color: #1F2937;">Basic Information</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label for="id_property_name" class="block text-sm font-medium mb-2" style="color: #374151;">Property Name</label>
+                                            <input type="text" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition" 
+                                                   id="id_property_name" name="property_name" required 
+                                                   placeholder="e.g., Sunrise Apartments">
+                                        </div>
+                                        <div>
+                                            <label for="id_location" class="block text-sm font-medium mb-2" style="color: #374151;">Location</label>
+                                            <input type="text" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition" 
+                                                   id="id_location" name="location" required 
+                                                   placeholder="e.g., East Legon, Accra">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Room Details -->
+                                <div class="pb-6 border-b border-gray-100">
+                                    <h3 class="font-bold text-lg mb-4" style="color: #1F2937;">Room Details</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                        <div>
+                                            <label for="id_room_type" class="block text-sm font-medium mb-2" style="color: #374151;">Room Type</label>
+                                            <select class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition" 
+                                                    id="id_room_type" name="room_type" required>
+                                                <option value="">Select type</option>
+                                                <option value="single">Single Room</option>
+                                                <option value="double">Double Room</option>
+                                                <option value="self_contained">Self-Contained</option>
+                                                <option value="shared">Shared Room</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label for="id_price" class="block text-sm font-medium mb-2" style="color: #374151;">Price (GH₵)</label>
+                                            <input type="number" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition" 
+                                                   id="id_price" name="price" step="0.01" required 
+                                                   placeholder="500">
+                                        </div>
+                                        <div>
+                                            <label for="id_total_rooms" class="block text-sm font-medium mb-2" style="color: #374151;">Total Rooms</label>
+                                            <input type="number" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition" 
+                                                   id="id_total_rooms" name="total_rooms" value="1" required>
+                                        </div>
+                                        <div>
+                                            <label for="id_available_rooms" class="block text-sm font-medium mb-2" style="color: #374151;">Available</label>
+                                            <input type="number" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition" 
+                                                   id="id_available_rooms" name="available_rooms" value="1" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Description & Facilities -->
+                                <div class="pb-6 border-b border-gray-100">
+                                    <h3 class="font-bold text-lg mb-4" style="color: #1F2937;">Description & Facilities</h3>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label for="id_description" class="block text-sm font-medium mb-2" style="color: #374151;">Description</label>
+                                            <textarea class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition" 
+                                                      id="id_description" name="description" rows="4" required 
+                                                      placeholder="Describe your property..."></textarea>
+                                        </div>
+                                        <div>
+                                            <label for="id_facilities" class="block text-sm font-medium mb-2" style="color: #374151;">Facilities</label>
+                                            <textarea class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition" 
+                                                      id="id_facilities" name="facilities" rows="2" 
+                                                      placeholder="e.g., WiFi, Parking, Security, Kitchen"></textarea>
+                                            <p class="text-gray-400 text-sm mt-1">Separate facilities with commas</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Image -->
+                                <div>
+                                    <h3 class="font-bold text-lg mb-4" style="color: #1F2937;">Property Image</h3>
+                                    <div class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-blue-400 transition cursor-pointer">
+                                        <input type="file" class="hidden" id="id_image" name="image" accept="image/*,video/*" multiple>
+                                        <label for="id_image" class="cursor-pointer">
+                                            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3" style="background: #EFF6FF;">
+                                                <i class="fas fa-cloud-upload-alt text-blue-600 text-2xl"></i>
+                                            </div>
+                                            <p class="font-medium" style="color: #374151;">Click to upload image</p>
+                                            <p class="text-gray-400 text-sm">Images or Videos</p>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <!-- Submit -->
+                                <div class="flex justify-end gap-4">
+                                    <a href="{% url 'landlord_dashboard' %}" class="px-6 py-3 rounded-xl font-bold transition" style="background: #F3F4F6; color: #374151;">
+                                        Cancel
+                                    </a>
+                                    <button type="submit" class="px-8 py-3 rounded-xl font-bold transition" style="background: linear-gradient(135deg, #1A56DB, #3B82F6); color: #fff; box-shadow: 0 4px 12px rgba(29,78,216,0.35);">
+                                        <i class="fas fa-plus mr-2"></i>Add Property
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Tips Sidebar -->
+                    <div class="lg:col-span-1">
+                        <div class="rounded-2xl p-6 sticky top-6" style="background: #EFF6FF; border: 1px solid #BFDBFE;">
+                            <h3 class="font-bold text-lg mb-4" style="color: #1E40AF;">
+                                <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>Tips for Listing
+                            </h3>
+                            <ul class="space-y-3" style="color: #4B5563;">
+                                <li class="flex items-start gap-2">
+                                    <i class="fas fa-check text-green-500 mt-1"></i>
+                                    <span>Add high-quality photos to attract more students</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <i class="fas fa-check text-green-500 mt-1"></i>
+                                    <span>Be specific about location and nearby amenities</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <i class="fas fa-check text-green-500 mt-1"></i>
+                                    <span>Include all facilities available to tenants</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <i class="fas fa-check text-green-500 mt-1"></i>
+                                    <span>Set a competitive price to get more applications</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+    document.getElementById('id_image').addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            let text = '';
+            if (e.target.files.length === 1) {
+                text = 'Selected: ' + e.target.files[0].name;
+            } else {
+                text = 'Selected: ' + e.target.files.length + ' files';
+            }
+            const textElem = this.nextElementSibling.querySelector('p.font-medium');
+            if (textElem) {
+                textElem.textContent = text;
+                textElem.classList.remove('text-gray-600');
+                textElem.classList.add('text-green-600');
+            }
+        }
+    });
+</script>
+{% endblock %}

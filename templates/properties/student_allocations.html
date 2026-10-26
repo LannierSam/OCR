@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}My Allocations - OCR Management System{% endblock %}
+
+{% block content %}
+<style>
+    .sidebar-hover { transition: all 0.3s ease; }
+    .sidebar-hover:hover { background-color: rgba(26, 86, 219, 0.12); padding-left: 1.5rem; }
+    .sidebar-link { transition: all 0.2s ease; }
+    .sidebar-link.active { background: linear-gradient(135deg, #1A56DB, #1d4ed8); box-shadow: 0 4px 12px rgba(26, 86, 219, 0.35); }
+    body > nav { display: none !important; }
+    .card-radius { border-radius: 1.5rem; }
+    .button-radius { border-radius: 0.75rem; }
+</style>
+<div class="flex min-h-screen" style="background-color: #F9FAFB;">
+
+    <!-- Sidebar -->
+    <aside class="w-64 flex flex-col justify-between fixed left-0 top-0 h-screen text-white" style="background-color: #111827; z-index: 40;">
+        <div>
+            <div class="flex items-center gap-3 px-6 py-6 border-b border-gray-800">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #1A56DB, #3B82F6);">
+                    <i class="fas fa-home text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white leading-tight">OCR</h1>
+                    <p class="text-[11px] text-gray-400">Student Portal</p>
+                </div>
+            </div>
+
+            <nav class="px-4 py-6 space-y-1">
+                <p class="px-3 pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Main</p>
+                <a href="{% url 'student_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'student_dashboard' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-th-large w-5 text-center"></i> Dashboard
+                </a>
+
+                <p class="px-3 pt-4 pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Housing</p>
+                <a href="{% url 'property_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'property_list' or request.resolver_match.url_name == 'property_detail' or request.resolver_match.url_name == 'apply_property' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-search w-5 text-center"></i> Browse Properties
+                </a>
+                <a href="{% url 'student_applications' %}" class="sidebar-link {% if request.resolver_match.url_name == 'student_applications' or request.resolver_match.url_name == 'student_allocations' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-file-alt w-5 text-center"></i> My Applications
+                </a>
+
+                <p class="px-3 pt-4 pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Account</p>
+                <a href="{% url 'messages_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'messages_list' or request.resolver_match.url_name == 'conversation' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-comments w-5 text-center"></i> Messages
+                </a>
+                <a href="{% url 'student_profile' %}" class="sidebar-link {% if request.resolver_match.url_name == 'student_profile' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-user-cog w-5 text-center"></i> Settings
+                </a>
+            </nav>
+        </div>
+        <div class="px-4 pb-6">
+            <a href="{% url 'logout' %}" class="flex items-center justify-center gap-2 text-gray-400 hover:text-white transition font-medium">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="ml-64 flex-1 flex flex-col min-h-screen">
+        
+        <div class="px-8 py-8 max-w-[1200px] mx-auto">
+            <!-- Header -->
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-slate-800">My Allocations</h1>
+                <p class="text-gray-500 mt-2">Your approved property allocations</p>
+            </div>
+            
+            {% if allocations %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {% for allocation in allocations %}
+                <div class="bg-white card-radius shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 overflow-hidden group">
+                    <!-- Header -->
+                    <div class="bg-gradient-to-r from-green-500 to-green-600 p-4">
+                        <h3 class="font-bold text-lg text-white">{{ allocation.property.property_name }}</h3>
+                        <p class="text-green-100 text-sm">
+                            <i class="fas fa-map-marker-alt mr-1"></i>
+                            {{ allocation.property.location }}
+                        </p>
+                    </div>
+                    
+                    <!-- Details -->
+                    <div class="p-5">
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                                <span class="text-gray-500"><i class="fas fa-door-open mr-2 text-blue-500"></i>Room Number</span>
+                                <span class="font-bold text-slate-800">{{ allocation.room_number }}</span>
+                            </div>
+                            <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                                <span class="text-gray-500"><i class="fas fa-money-bill mr-2 text-blue-500"></i>Monthly Rent</span>
+                                <span class="font-bold text-slate-800">GH₵ {{ allocation.property.price }}</span>
+                            </div>
+                            <div class="flex items-center justify-between py-2">
+                                <span class="text-gray-500"><i class="fas fa-calendar mr-2 text-blue-500"></i>Allocated</span>
+                                <span class="font-bold text-slate-800">{{ allocation.allocation_date|date:"M d, Y" }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 pt-4 border-t border-gray-100">
+                            <a href="{% url 'property_detail' property_id=allocation.property.id %}" class="block w-full bg-blue-50 hover:bg-blue-100 text-blue-600 text-center px-4 py-2 button-radius font-medium transition">
+                                <i class="fas fa-eye mr-2"></i>View Property Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="bg-white card-radius shadow-sm border border-gray-100 p-12 text-center">
+                <div class="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-home text-blue-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 mb-2">No Allocations Yet</h3>
+                <p class="text-gray-500">You haven't been allocated to any property yet.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

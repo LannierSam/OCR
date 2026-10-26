@@ -1,0 +1,373 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard - OCR Management System{% endblock %}
+
+{% block content %}
+<style>
+    .sidebar-hover { transition: all 0.3s ease; }
+    .sidebar-hover:hover { background-color: rgba(26, 86, 219, 0.12); padding-left: 1.5rem; }
+    .sidebar-link { transition: all 0.2s ease; }
+    .sidebar-link.active { background: linear-gradient(135deg, #1A56DB, #1d4ed8); box-shadow: 0 4px 12px rgba(26, 86, 219, 0.35); }
+    body > nav { display: none !important; }
+</style>
+
+<div class="flex min-h-screen" style="background-color: #F9FAFB;">
+
+    <!-- Sidebar -->
+    <aside class="w-64 flex flex-col justify-between fixed left-0 top-0 h-screen text-white" style="background-color: #111827; z-index: 40;">
+        <div>
+            <div class="flex items-center gap-3 px-6 py-6 border-b border-gray-800">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #1A56DB, #3B82F6);">
+                    <i class="fas fa-home text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white leading-tight">OCR</h1>
+                    <p class="text-[11px] text-gray-400">Student Portal</p>
+                </div>
+            </div>
+
+            <nav class="px-4 py-6 space-y-1">
+                <p class="px-3 pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Main</p>
+                <a href="{% url 'student_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'student_dashboard' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-th-large w-5 text-center"></i> Dashboard
+                </a>
+
+                <p class="px-3 pt-4 pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Housing</p>
+                <a href="{% url 'property_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'property_list' or request.resolver_match.url_name == 'property_detail' or request.resolver_match.url_name == 'apply_property' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-search w-5 text-center"></i> Browse Properties
+                </a>
+                <a href="{% url 'student_applications' %}" class="sidebar-link {% if request.resolver_match.url_name == 'student_applications' or request.resolver_match.url_name == 'student_allocations' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-file-alt w-5 text-center"></i> My Applications
+                </a>
+
+                <p class="px-3 pt-4 pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Account</p>
+                <a href="{% url 'messages_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'messages_list' or request.resolver_match.url_name == 'conversation' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-comments w-5 text-center"></i> Messages
+                </a>
+                <a href="{% url 'student_profile' %}" class="sidebar-link {% if request.resolver_match.url_name == 'student_profile' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-user-cog w-5 text-center"></i> Settings
+                </a>
+            </nav>
+        </div>
+        <div class="px-4 pb-6">
+            <a href="{% url 'logout' %}" class="flex items-center justify-center gap-2 text-gray-400 hover:text-white transition font-medium">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="ml-64 flex-1 flex flex-col min-h-screen">
+
+        <!-- Top Navbar -->
+        <header class="sticky top-0 z-30 bg-white border-b border-gray-200" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <div class="flex items-center justify-between h-16 px-8">
+                <div class="relative w-80">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                    <input type="text" placeholder="Search properties..."
+                           class="w-full pl-10 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+                </div>
+                <div class="flex items-center gap-4">
+                    <button class="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                        <i class="fas fa-bell text-lg"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                    <div class="relative">
+                        <button onclick="toggleDropdown()" class="flex items-center gap-3 pl-3 pr-1 py-1 hover:bg-gray-50 rounded-lg transition">
+                            <div class="text-right">
+                                <p class="text-sm font-semibold text-gray-800 leading-tight">{{ student.first_name|default:user.email }}</p>
+                                <p class="text-[11px] text-gray-500">Student</p>
+                            </div>
+                            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-semibold text-sm shadow">
+                                {{ student.first_name|default:"S"|make_list|first }}
+                            </div>
+                            <i class="fas fa-chevron-down text-xs text-gray-400 mr-1"></i>
+                        </button>
+                        <div id="profileDropdown" class="hidden absolute right-0 top-full mt-1 w-56 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
+                            <div class="px-4 py-3 border-b border-gray-100">
+                                <p class="text-sm font-semibold text-gray-800">{{ student.first_name }} {{ student.last_name }}</p>
+                                <p class="text-xs text-gray-500">{{ user.email }}</p>
+                            </div>
+                            <a href="{% url 'student_profile' %}" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50"><i class="fas fa-user text-gray-400 w-4"></i> Profile</a>
+                            <hr class="border-gray-100">
+                            <a href="{% url 'logout' %}" class="flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50"><i class="fas fa-sign-out-alt text-red-500 w-4"></i> Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="flex-1 p-8 space-y-6 max-w-[1200px] mx-auto w-full">
+
+            <!-- Welcome Banner -->
+            <section class="relative rounded-2xl overflow-hidden shadow-xl h-64">
+                <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=1200');"></div>
+                <div class="absolute inset-0 bg-gradient-to-r from-slate-900/90 to-slate-800/80"></div>
+                <div class="relative z-10 h-full flex flex-col justify-center px-8 text-white">
+                    <h1 class="text-4xl font-extrabold">Welcome back, <span class="bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">{{ student.first_name|default:"Student" }}</span>!</h1>
+                    <p class="mt-3 text-lg text-slate-300">Your premium housing management portal. Discover, apply, and manage your student accommodation.</p>
+                </div>
+            </section>
+
+            <!-- Action Callout -->
+            <div class="rounded-xl bg-gradient-to-r from-slate-800 to-slate-700 shadow-md flex items-center justify-between px-6 py-5">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-home text-blue-500 text-2xl"></i>
+                    <h2 class="text-xl font-bold text-white">Find Your Perfect Home</h2>
+                </div>
+                <a href="{% url 'property_list' %}" class="rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 font-bold shadow-lg hover:shadow-xl transition transform hover:scale-105 text-sm">
+                    Browse Now <i class="fas fa-arrow-right ml-2"></i>
+                </a>
+            </div>
+
+            <!-- Stats Row -->
+            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Applications</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.total_applications }}</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-file-alt text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Approved</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.approved_applications }}</p>
+                        </div>
+                        <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Pending</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.pending_applications }}</p>
+                        </div>
+                        <div class="w-12 h-12 bg-yellow-50 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-hourglass-half text-yellow-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Messages</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.unread_messages }}</p>
+                        </div>
+                        <div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-envelope text-purple-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Featured Properties Section -->
+            <section class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-building text-blue-600"></i>
+                        </div>
+                        <h3 class="font-bold text-gray-900 text-xl">Available Properties</h3>
+                    </div>
+                    <a href="{% url 'property_list' %}" class="text-blue-600 hover:text-blue-700 text-sm font-semibold flex items-center gap-1 group">
+                        View All <i class="fas fa-chevron-right text-xs group-hover:translate-x-1 transition-transform"></i>
+                    </a>
+                </div>
+                
+                {% if latest_properties %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for property in latest_properties %}
+                    <div class="bg-white rounded-[20px] shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden group flex flex-col h-full">
+                        <!-- Property Image & Badges -->
+                        <div class="relative h-56 overflow-hidden">
+                            {% if property.get_thumbnail %}
+                                {% if property.thumbnail_is_video %}
+                                <video src="{{ property.get_thumbnail }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" autoplay muted loop></video>
+                                <div class="absolute top-3 left-3">
+                                    <span class="bg-blue-500/90 backdrop-blur-sm text-white px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">Video Tour</span>
+                                </div>
+                                {% else %}
+                                <img src="{{ property.get_thumbnail }}" alt="{{ property.property_name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                                {% endif %}
+                            {% else %}
+                            <div class="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+                                <i class="fas fa-home text-slate-300 text-5xl"></i>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Multiple Images Indicator & Gallery Preview -->
+                            {% if property.media_files.all %}
+                            <div class="absolute bottom-3 right-3 flex flex-col items-end gap-2">
+                                <div class="flex gap-1">
+                                    {% for media in property.media_files.all|slice:":3" %}
+                                    <div class="w-8 h-8 rounded-lg border border-white/50 overflow-hidden shadow-sm">
+                                        {% if media.is_video %}
+                                        <div class="w-full h-full bg-slate-900 flex items-center justify-center"><i class="fas fa-play text-[8px] text-white"></i></div>
+                                        {% else %}
+                                        <img src="{{ media.file.url }}" class="w-full h-full object-cover">
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                    {% if property.media_files.count > 3 %}
+                                    <div class="w-8 h-8 rounded-lg bg-black/60 backdrop-blur-sm flex items-center justify-center text-[10px] text-white font-bold">
+                                        +{{ property.media_files.count|add:"-3" }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="bg-black/50 backdrop-blur-md text-white px-2 py-1 rounded-lg text-[9px] font-bold flex items-center gap-1">
+                                    <i class="fas fa-images"></i>
+                                    {{ property.media_files.count|add:1 }} Media
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Status Badges -->
+                            <div class="absolute top-3 right-3 flex flex-col gap-2 items-end">
+                                {% if property.approval_status == 'pending' %}
+                                <span class="bg-yellow-500/90 backdrop-blur-sm text-white px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-sm">Pending Approval</span>
+                                {% elif property.approval_status == 'rejected' %}
+                                <span class="bg-red-500/90 backdrop-blur-sm text-white px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-sm">Rejected</span>
+                                {% endif %}
+
+                                {% if property.available_rooms > 0 %}
+                                <span class="bg-emerald-500/90 backdrop-blur-sm text-white px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-sm">Available</span>
+                                {% else %}
+                                <span class="bg-slate-700/90 backdrop-blur-sm text-white px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-sm">Fully Booked</span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Landlord Avatar (Floating) -->
+                            <div class="absolute bottom-3 left-3 flex items-center gap-2 bg-white/90 backdrop-blur-sm p-1.5 rounded-xl shadow-lg border border-white/20">
+                                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-[10px] font-black shadow-inner">
+                                    {{ property.landlord.landlord_profile.full_name|default:"L"|make_list|first }}
+                                </div>
+                                <div class="pr-2">
+                                    <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter leading-none">Landlord</p>
+                                    <p class="text-[10px] text-slate-900 font-black leading-tight">{{ property.landlord.landlord_profile.full_name|default:property.landlord.email|truncatechars:25 }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Property Details -->
+                        <div class="p-6 flex-1 flex flex-col">
+                            <h4 class="font-bold text-gray-900 text-lg group-hover:text-blue-600 transition-colors duration-300 leading-tight">{{ property.property_name }}</h4>
+                            
+                            <div class="flex items-center gap-2 text-gray-400 text-sm mt-2">
+                                <i class="fas fa-map-marker-alt text-gray-300"></i>
+                                <span class="truncate">{{ property.location }}</span>
+                            </div>
+                            
+                            <!-- Features Row (Matching icons from image) -->
+                            <div class="flex items-center gap-4 mt-4 text-gray-400 text-xs font-medium">
+                                <div class="flex items-center gap-1.5">
+                                    <i class="fas fa-bed"></i>
+                                    <span>{{ property.total_rooms }} bed</span>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    <i class="fas fa-bath"></i>
+                                    <span>1 bath</span>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    <i class="fas fa-vector-square"></i>
+                                    <span>450 sqft</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Price and Date Row -->
+                            <div class="mt-auto pt-6 flex items-center justify-between">
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-blue-600 font-extrabold text-2xl">GH₵ {{ property.price }}</span>
+                                    <span class="text-gray-400 text-sm">/mo</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 text-gray-400 text-[11px]">
+                                    <i class="far fa-calendar-alt"></i>
+                                    <span>{{ property.created_at|date:"M j" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- View Details Button (Full Width) -->
+                        <div class="px-6 pb-6">
+                            <a href="{% url 'property_detail' property_id=property.id %}" class="w-full py-3.5 bg-[#4353FF] hover:bg-[#3242ee] text-white rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="bg-gray-50 rounded-2xl p-12 text-center border-2 border-dashed border-gray-200">
+                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                        <i class="fas fa-search text-gray-300 text-2xl"></i>
+                    </div>
+                    <h4 class="text-gray-900 font-bold">No properties listed yet</h4>
+                    <p class="text-gray-500 text-sm mt-1">Check back later for new available accommodations.</p>
+                </div>
+                {% endif %}
+            </section>
+            <!-- Notifications -->
+            <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-pink-50 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-bell text-pink-600"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900">Notifications</h3>
+                </div>
+                <p class="text-gray-500 text-sm">No new notifications. Check back later for updates on your applications and housing status.</p>
+            </div>
+
+            <!-- Student Information -->
+            <section class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                <h3 class="font-bold text-gray-900 mb-4">Student Information</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-xs text-gray-500 font-medium">Name</p>
+                        <p class="font-semibold text-gray-900 mt-1">{{ student.first_name }} {{ student.last_name }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-xs text-gray-500 font-medium">Email</p>
+                        <p class="font-semibold text-gray-900 mt-1">{{ user.email }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-xs text-gray-500 font-medium">Phone</p>
+                        <p class="font-semibold text-gray-900 mt-1">{{ student.phone }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-xs text-gray-500 font-medium">Level</p>
+                        <p class="font-semibold text-gray-900 mt-1">{{ student.get_level_display }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-xs text-gray-500 font-medium">Department</p>
+                        <p class="font-semibold text-gray-900 mt-1">{{ student.department }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-xs text-gray-500 font-medium">Gender</p>
+                        <p class="font-semibold text-gray-900 mt-1">{{ student.get_gender_display }}</p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+</div>
+
+<script>
+function toggleDropdown() {
+    document.getElementById('profileDropdown').classList.toggle('hidden');
+}
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('[onclick="toggleDropdown()"]') && !e.target.closest('#profileDropdown')) {
+        document.getElementById('profileDropdown').classList.add('hidden');
+    }
+});
+</script>
+{% endblock %}

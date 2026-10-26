@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}OCR | Sign In{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 bg-white rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-all duration-500" style="border: 1px solid #E5E7EB;">
+        <div class="text-center">
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-5 mx-auto" style="background: linear-gradient(135deg, #1A56DB, #3B82F6); box-shadow: 0 8px 20px rgba(29,78,216,0.3);">
+                <i class="fas fa-home text-white text-2xl"></i>
+            </div>
+            <h1 class="mt-2 text-3xl font-bold playfair" style="color: #1F2937;">
+                Welcome Back
+            </h1>
+            <p class="mt-2 text-sm" style="color: #6B7280;">
+                Sign in to continue to your dashboard
+            </p>
+            <p class="mt-1 text-xs font-semibold" style="color: #1A56DB;">
+                OCR
+            </p>
+        </div>
+
+        {% if messages %}
+            <div class="space-y-2">
+                {% for message in messages %}
+                    <div class="rounded-lg px-4 py-3 text-sm font-medium {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% elif message.tags == 'success' %}bg-green-50 text-green-700 border border-green-200{% else %}bg-gray-50 text-gray-700 border border-gray-200{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="flex items-center rounded-xl overflow-hidden" style="border: 1px solid #E5E7EB;">
+            <button id="studentTab" type="button" class="w-1/2 py-3 font-semibold text-sm bg-transparent transition-all duration-500" onclick="switchTab('student')" style="color: #1A56DB;">
+                Student
+            </button>
+            <button id="landlordTab" type="button" class="w-1/2 py-3 font-semibold text-sm bg-transparent hover:opacity-80 transition-all duration-500" onclick="switchTab('landlord')" style="color: #6B7280;">
+                Landlord
+            </button>
+        </div>
+
+        <form method="post" class="space-y-5" id="loginForm" action="{% url 'login' %}">
+            {% csrf_token %}
+            <input type="hidden" name="role" id="roleInput" value="{{ selected_role|default:'student' }}" />
+
+            <div>
+                <label id="mainInputLabel" for="email" class="block text-xs font-semibold uppercase tracking-wide" style="color: #6B7280;">Email Address</label>
+                <div class="relative mt-1.5">
+                    <i class="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2" style="color: #1A56DB;"></i>
+                    <input id="email" name="email" type="email" required autofocus
+                        class="block w-full pl-10 pr-4 py-3 rounded-xl border transition-all duration-500 placeholder-gray-400 focus:outline-none"
+                        style="border-color: #D1D5DB; color: #1F2937; background: #F9FAFB;" placeholder="you@example.com" />
+                </div>
+                <p id="hintText" class="mt-1 text-xs" style="color: #6B7280;">Use your registered email address</p>
+            </div>
+
+            <div>
+                <label for="password" class="block text-xs font-semibold uppercase tracking-wide" style="color: #6B7280;">Password</label>
+                <div class="relative mt-1.5">
+                    <i class="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2" style="color: #1A56DB;"></i>
+                    <input id="password" name="password" type="password" required
+                        class="block w-full pl-10 pr-4 py-3 rounded-xl border transition-all duration-500 placeholder-gray-400 focus:outline-none"
+                        style="border-color: #D1D5DB; color: #1F2937; background: #F9FAFB;" placeholder="••••••••" />
+                </div>
+            </div>
+
+            <div id="codeSection" class="hidden">
+                <label for="unique_code" class="block text-xs font-semibold uppercase tracking-wide" style="color: #6B7280;">Unique Code</label>
+                <div class="relative mt-1.5">
+                    <i class="fas fa-key absolute left-3 top-1/2 transform -translate-y-1/2" style="color: #1A56DB;"></i>
+                    <input id="unique_code" name="unique_code" type="text"
+                        class="block w-full pl-10 pr-4 py-3 rounded-xl border transition-all duration-500 placeholder-gray-400 focus:outline-none"
+                        style="border-color: #D1D5DB; color: #1F2937; background: #F9FAFB;" placeholder="LL-XXXXXX" />
+                </div>
+                <p class="mt-1 text-xs font-medium italic" style="color: #DC2626;">Check your email for your unique code sent during registration.</p>
+            </div>
+
+            <button type="submit" class="w-full py-3.5 font-bold rounded-xl transition-all duration-300 hover:shadow-lg"
+                style="background: linear-gradient(135deg, #1A56DB, #3B82F6); color: #fff;">
+                Sign In <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+
+            <div class="flex items-center justify-center py-2">
+                <span class="px-3 text-xs" style="color: #6B7280; background: #fff; position: relative; z-index: 1;">OR</span>
+            </div>
+
+            <p class="text-center text-sm" style="color: #6B7280;">
+                Don't have an account? <a href="{% url 'register' %}" class="font-semibold underline transition-all duration-300 hover:opacity-80" style="color: #1A56DB;">Register now</a>
+            </p>
+        </form>
+    </div>
+</div>
+
+<script>
+function switchTab(role) {
+    var studentTab = document.getElementById('studentTab');
+    var landlordTab = document.getElementById('landlordTab');
+    var roleInput = document.getElementById('roleInput');
+    var mainInputLabel = document.getElementById('mainInputLabel');
+    var emailInput = document.getElementById('email');
+    var hintText = document.getElementById('hintText');
+    var codeSection = document.getElementById('codeSection');
+    var codeInput = document.getElementById('unique_code');
+
+    if (role === 'student') {
+        studentTab.style.background = 'rgba(29,78,216,0.1)';
+        studentTab.style.color = '#1A56DB';
+        landlordTab.style.background = 'transparent';
+        landlordTab.style.color = '#6B7280';
+        roleInput.value = 'student';
+        mainInputLabel.textContent = 'Email Address';
+        emailInput.placeholder = 'you@example.hcuc.edu.gh';
+        hintText.textContent = 'Use your registered email address';
+        codeSection.classList.add('hidden');
+        codeInput.required = false;
+        codeInput.disabled = true;
+    } else {
+        landlordTab.style.background = 'rgba(29,78,216,0.1)';
+        landlordTab.style.color = '#1A56DB';
+        studentTab.style.background = 'transparent';
+        studentTab.style.color = '#6B7280';
+        roleInput.value = 'landlord';
+        mainInputLabel.textContent = 'Email Address';
+        emailInput.placeholder = 'you@example.com';
+        hintText.textContent = 'Use your registered email address';
+        codeSection.classList.remove('hidden');
+        codeInput.required = true;
+        codeInput.disabled = false;
+    }
+}
+
+var initialRole = '{{ selected_role|default:"student" }}';
+if (initialRole === 'landlord') {
+    switchTab('landlord');
+} else {
+    switchTab('student');
+}
+</script>
+{% endblock %}

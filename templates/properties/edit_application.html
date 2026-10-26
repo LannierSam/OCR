@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Rental Application - OCR Management System{% endblock %}
+
+{% block content %}
+<style>
+    .sidebar-hover { transition: all 0.3s ease; }
+    .sidebar-hover:hover { background-color: rgba(26, 86, 219, 0.12); padding-left: 1.5rem; }
+    .sidebar-link { transition: all 0.2s ease; }
+    .sidebar-link.active { background: linear-gradient(135deg, #1A56DB, #1d4ed8); box-shadow: 0 4px 12px rgba(26, 86, 219, 0.35); }
+    body > nav { display: none !important; }
+</style>
+
+<div class="flex min-h-screen" style="background-color: #F9FAFB;">
+
+    <!-- Left Sidebar (Main Navigation) -->
+    <aside class="w-64 flex flex-col justify-between fixed left-0 top-0 h-screen text-white" style="background-color: #111827; z-index: 40;">
+        <div>
+            <div class="flex items-center gap-3 px-6 py-6 border-b border-gray-800">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #1A56DB, #3B82F6);">
+                    <i class="fas fa-home text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white leading-tight">OCR</h1>
+                    <p class="text-[11px] text-gray-400">Student Portal</p>
+                </div>
+            </div>
+
+            <nav class="px-4 py-6 space-y-1">
+                <p class="px-3 pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Main</p>
+                <a href="{% url 'student_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'student_dashboard' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-th-large w-5 text-center"></i> Dashboard
+                </a>
+
+                <p class="px-3 pt-4 pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Housing</p>
+                <a href="{% url 'property_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'property_list' or request.resolver_match.url_name == 'property_detail' or request.resolver_match.url_name == 'apply_property' or request.resolver_match.url_name == 'edit_application' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-search w-5 text-center"></i> Browse Properties
+                </a>
+                <a href="{% url 'student_applications' %}" class="sidebar-link {% if request.resolver_match.url_name == 'student_applications' or request.resolver_match.url_name == 'student_allocations' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-file-alt w-5 text-center"></i> My Applications
+                </a>
+
+                <p class="px-3 pt-4 pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Account</p>
+                <a href="{% url 'messages_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'messages_list' or request.resolver_match.url_name == 'conversation' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-comments w-5 text-center"></i> Messages
+                </a>
+                <a href="{% url 'student_profile' %}" class="sidebar-link {% if request.resolver_match.url_name == 'student_profile' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-user-cog w-5 text-center"></i> Settings
+                </a>
+            </nav>
+        </div>
+        <div class="px-4 pb-6">
+            <a href="{% url 'logout' %}" class="flex items-center justify-center gap-2 text-gray-400 hover:text-white transition font-medium">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="ml-64 flex-1 flex items-center justify-center p-8">
+        
+        <!-- Application Form Modal-Style Card -->
+        <div class="bg-white rounded-[32px] shadow-2xl border border-gray-100 w-full max-w-[750px] overflow-hidden relative animate-in fade-in zoom-in duration-300">
+            
+            <!-- Close Button -->
+            <a href="{% url 'student_applications' %}" class="absolute top-6 right-8 text-gray-400 hover:text-gray-600 transition">
+                <i class="fas fa-times text-xl"></i>
+            </a>
+
+            <div class="p-10 md:p-14">
+                <h2 class="text-3xl font-extrabold text-slate-900 mb-2">Edit Rental Application</h2>
+                <p class="text-gray-500 mb-10">Updating application for <strong>{{ property.property_name }}</strong></p>
+                
+                <form method="post" class="space-y-8">
+                    {% csrf_token %}
+                    
+                    <!-- Form Grid 1: Name & Phone -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-900 mb-3" for="{{ form.full_name.id_for_label }}">Full Name</label>
+                            {{ form.full_name }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-900 mb-3" for="{{ form.phone.id_for_label }}">Phone</label>
+                            {{ form.phone }}
+                        </div>
+                    </div>
+
+                    <!-- Form Grid 2: Move-in Date & Duration -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-900 mb-3" for="{{ form.move_in_date.id_for_label }}">Move-in Date</label>
+                            {{ form.move_in_date }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-900 mb-3" for="{{ form.duration.id_for_label }}">Duration (months)</label>
+                            {{ form.duration }}
+                        </div>
+                    </div>
+
+                    <!-- Additional Info Textarea -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-900 mb-3" for="{{ form.additional_info.id_for_label }}">Additional Information</label>
+                        {{ form.additional_info }}
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="pt-4">
+                        <button type="submit" class="w-full py-5 bg-[#1A1A1A] hover:bg-black text-white rounded-2xl font-bold transition-all flex items-center justify-center gap-3 text-lg shadow-xl shadow-gray-200">
+                            <i class="fas fa-save text-base"></i>
+                            Update Application
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

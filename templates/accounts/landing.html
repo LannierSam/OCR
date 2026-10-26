@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+
+{% block title %}OCR | Find Your Perfect Student Housing{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<style>
+    .hero-gradient {
+        background: radial-gradient(ellipse at 30% 50%, rgba(184,115,51,0.08) 0%, transparent 60%),
+                    radial-gradient(ellipse at 80% 20%, rgba(46,171,209,0.06) 0%, transparent 50%);
+    }
+    .feature-card-hover {
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+    .feature-card-hover:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 40px -12px rgba(0,0,0,0.15);
+        border-color: var(--brushed-copper);
+    }
+    .img-card {
+        transition: transform 0.5s ease, box-shadow 0.5s ease;
+    }
+    .img-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+    }
+    .stat-float {
+        animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, var(--brushed-copper), var(--rose-gold));
+        color: #fff;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(184,115,51,0.3);
+    }
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(184,115,51,0.45);
+    }
+    .btn-outline {
+        border: 1.5px solid var(--brushed-copper);
+        color: var(--brushed-copper);
+        transition: all 0.3s ease;
+    }
+    .btn-outline:hover {
+        background: var(--brushed-copper);
+        color: #fff;
+        transform: translateY(-2px);
+    }
+</style>
+
+<!-- Navbar -->
+<nav class="flex justify-between items-center px-8 py-5 fixed top-0 left-0 right-0 z-50" style="backdrop-filter: blur(16px); background: rgba(255,255,255,0.85); box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+    <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, var(--brushed-copper), var(--rose-gold));">
+            <i class="fas fa-home text-white text-lg"></i>
+        </div>
+        <span class="text-2xl font-bold playfair" style="color: var(--champagne-beige);">OCR</span>
+    </div>
+    <div class="hidden md:flex items-center gap-8">
+        <a href="#features" class="nav-link text-sm font-medium">Features</a>
+        <a href="#about" class="nav-link text-sm font-medium">About</a>
+    </div>
+    <div class="flex items-center gap-3">
+        {% if user.is_authenticated %}
+            {% if user.role == 'student' %}
+                <a href="{% url 'student_dashboard' %}" class="btn-primary px-5 py-2.5 rounded-xl font-semibold text-sm">
+                    Go to Dashboard <i class="fas fa-arrow-right ml-2"></i>
+                </a>
+            {% elif user.role == 'landlord' %}
+                <a href="{% url 'landlord_dashboard' %}" class="btn-primary px-5 py-2.5 rounded-xl font-semibold text-sm">
+                    Go to Dashboard <i class="fas fa-arrow-right ml-2"></i>
+                </a>
+            {% elif user.is_admin %}
+                <a href="{% url 'admin:index' %}" class="btn-primary px-5 py-2.5 rounded-xl font-semibold text-sm">
+                    Go to Dashboard <i class="fas fa-arrow-right ml-2"></i>
+                </a>
+            {% endif %}
+        {% else %}
+            <a href="{% url 'login' %}" class="nav-link text-sm font-medium">Login</a>
+            <a href="{% url 'register' %}" class="btn-primary px-5 py-2.5 rounded-xl font-semibold text-sm">
+                Get Started
+            </a>
+        {% endif %}
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero-gradient px-8 md:px-16 pt-24 pb-16 md:pt-32 md:pb-24">
+    <div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+
+        <!-- Left: Text Content -->
+        <div class="flex-1 space-y-8">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider" style="background: rgba(184,115,51,0.1); color: var(--brushed-copper); border: 1px solid rgba(184,115,51,0.2);">
+                <i class="fas fa-star text-[10px]"></i>
+                Trusted by 2,000+ Students
+            </div>
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight playfair" style="color: var(--champagne-beige);">
+                Find Your Perfect <br>
+                <span style="background: linear-gradient(135deg, var(--brushed-copper), var(--rose-gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Student Housing</span>
+            </h1>
+            <p class="text-lg max-w-lg leading-relaxed" style="color: var(--muted-slate);">
+                Discover verified, quality off-campus residences near your campus. Safe, affordable, and tailored for student life.
+            </p>
+            <div class="flex flex-wrap gap-4">
+                <a href="{% url 'property_list' %}" class="btn-primary px-8 py-4 rounded-xl font-bold text-base inline-flex items-center gap-2">
+                    Browse Listings <i class="fas fa-arrow-right"></i>
+                </a>
+                <a href="#features" class="btn-outline px-8 py-4 rounded-xl font-bold text-base inline-flex items-center gap-2">
+                    Learn More <i class="fas fa-chevron-down"></i>
+                </a>
+            </div>
+
+            <!-- Mini Stats Row -->
+            <div class="flex gap-8 pt-4">
+                <div>
+                    <p class="text-2xl font-bold" style="color: var(--brushed-copper);">500+</p>
+                    <p class="text-xs uppercase tracking-wider" style="color: var(--muted-slate);">Properties</p>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold" style="color: var(--brushed-copper);">2K+</p>
+                    <p class="text-xs uppercase tracking-wider" style="color: var(--muted-slate);">Students</p>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold" style="color: var(--brushed-copper);">98%</p>
+                    <p class="text-xs uppercase tracking-wider" style="color: var(--muted-slate);">Satisfaction</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Image Card -->
+        <div class="flex-1 relative w-full max-w-lg lg:max-w-xl">
+            <!-- Main Image Card -->
+            <div class="img-card rounded-3xl overflow-hidden shadow-2xl" style="border: 3px solid rgba(184,115,51,0.3);">
+                <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800"
+                     alt="Modern Student Housing"
+                     class="w-full h-[350px] md:h-[450px] object-cover">
+                <!-- Overlay gradient at bottom -->
+                <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/50 to-transparent rounded-b-3xl"></div>
+                <!-- Image label -->
+                <div class="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+                    <div>
+                        <p class="text-white font-bold text-lg">Sunrise Hostel</p>
+                        <p class="text-white/70 text-sm"><i class="fas fa-map-marker-alt mr-1"></i>Near Main Campus</p>
+                    </div>
+                    <div class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold" style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); color: #fff;">
+                        <i class="fas fa-star text-yellow-400"></i> 4.8
+                    </div>
+                </div>
+            </div>
+
+            <!-- Floating Stat Card -->
+            <div class="stat-float absolute -bottom-6 -left-4 md:-left-8 flex items-center gap-3 px-5 py-4 rounded-2xl shadow-xl" style="background: linear-gradient(135deg, var(--brushed-copper), var(--rose-gold)); z-index: 10;">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: rgba(255,255,255,0.2);">
+                    <i class="fas fa-medal text-white text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-white">500+</p>
+                    <p class="text-xs text-white/80 font-medium">Verified Properties</p>
+                </div>
+            </div>
+
+            <!-- Floating Mini Card -->
+            <div class="stat-float absolute -top-4 -right-2 md:-right-6 flex items-center gap-2 px-4 py-3 rounded-2xl shadow-lg" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.15); z-index: 10; animation-delay: 1.5s;">
+                <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                    <i class="fas fa-shield-alt text-green-400 text-sm"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-white">100% Secure</p>
+                    <p class="text-[10px] text-white/60">Verified Landlords</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Why Choose Us Section -->
+<section id="features" class="px-8 md:px-16 py-20 md:py-28">
+    <div class="max-w-7xl mx-auto">
+        <!-- Section Header -->
+        <div class="text-center mb-16">
+            <p class="text-xs font-semibold uppercase tracking-widest mb-3" style="color: var(--brushed-copper);">Why Choose Us</p>
+            <h2 class="text-3xl md:text-4xl font-bold playfair mb-4" style="color: var(--champagne-beige);">
+                Built for Student Life
+            </h2>
+            <p class="max-w-2xl mx-auto leading-relaxed" style="color: var(--muted-slate);">
+                A housing platform designed around what students actually need — safety, simplicity, and quality living spaces.
+            </p>
+        </div>
+
+        <!-- Feature Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+            <!-- Card 1: High Quality -->
+            <div class="feature-card-hover rounded-2xl p-6 space-y-4" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(184,115,51,0.15); backdrop-filter: blur(5px);">
+                <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, var(--brushed-copper), var(--rose-gold)); box-shadow: 0 8px 20px rgba(184,115,51,0.25);">
+                    <i class="fas fa-gem text-white text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold playfair" style="color: var(--champagne-beige);">High Quality</h3>
+                <p class="text-sm leading-relaxed" style="color: var(--muted-slate);">
+                    Every listing meets strict quality standards — clean, well-maintained, and equipped with modern amenities.
+                </p>
+            </div>
+
+            <!-- Card 2: Modern Housing -->
+            <div class="feature-card-hover rounded-2xl p-6 space-y-4" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(184,115,51,0.15); backdrop-filter: blur(5px);">
+                <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, var(--brushed-copper), var(--rose-gold)); box-shadow: 0 8px 20px rgba(184,115,51,0.25);">
+                    <i class="fas fa-building text-white text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold playfair" style="color: var(--champagne-beige);">Modern Housing</h3>
+                <p class="text-sm leading-relaxed" style="color: var(--muted-slate);">
+                    Contemporary spaces with fast WiFi, study areas, and smart features designed for the modern student.
+                </p>
+            </div>
+
+            <!-- Card 3: Verified Properties -->
+            <div class="feature-card-hover rounded-2xl p-6 space-y-4" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(184,115,51,0.15); backdrop-filter: blur(5px);">
+                <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, var(--brushed-copper), var(--rose-gold)); box-shadow: 0 8px 20px rgba(184,115,51,0.25);">
+                    <i class="fas fa-user-shield text-white text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold playfair" style="color: var(--champagne-beige);">Verified Properties</h3>
+                <p class="text-sm leading-relaxed" style="color: var(--muted-slate);">
+                    Every landlord and property is verified for your safety. No scams, no surprises — just peace of mind.
+                </p>
+            </div>
+
+            <!-- Card 4: Easy Search -->
+            <div class="feature-card-hover rounded-2xl p-6 space-y-4" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(184,115,51,0.15); backdrop-filter: blur(5px);">
+                <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background: linear-gradient(135deg, var(--brushed-copper), var(--rose-gold)); box-shadow: 0 8px 20px rgba(184,115,51,0.25);">
+                    <i class="fas fa-search-plus text-white text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold playfair" style="color: var(--champagne-beige);">Easy Search</h3>
+                <p class="text-sm leading-relaxed" style="color: var(--muted-slate);">
+                    Filter by location, price, and amenities to find your ideal home in just a few clicks.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="px-8 md:px-16 py-20">
+    <div class="max-w-4xl mx-auto text-center rounded-3xl p-10 md:p-16" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(184,115,51,0.2); backdrop-filter: blur(10px);">
+        <h2 class="text-3xl md:text-4xl font-bold playfair mb-4" style="color: var(--champagne-beige);">
+            Ready to Find Your Home?
+        </h2>
+        <p class="max-w-xl mx-auto mb-8 leading-relaxed" style="color: var(--muted-slate);">
+            Join thousands of students who have already discovered their perfect off-campus residence through OCR.
+        </p>
+        <a href="{% url 'property_list' %}" class="btn-primary px-10 py-4 rounded-xl font-bold text-base inline-flex items-center gap-2">
+            Start Your Search <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+</section>
+{% endblock %}

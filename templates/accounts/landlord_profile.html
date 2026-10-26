@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Landlord Profile - OCR Management System{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<style>
+    .sidebar-hover { transition: all 0.3s ease; }
+    .sidebar-hover:hover { background-color: rgba(29,78,216,0.1); padding-left: 1.5rem; }
+    body > nav { display: none !important; }
+</style>
+
+<div class="flex min-h-screen" style="background-color: #F9FAFB;">
+
+    <!-- Sidebar -->
+    <aside class="w-64 flex flex-col justify-between fixed left-0 top-0 h-screen text-white" style="background-color: #111827; z-index: 40;">
+        <div>
+            <div class="flex items-center gap-3 px-6 py-6 border-b border-gray-800">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #1A56DB, #3B82F6);">
+                    <i class="fas fa-home text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white leading-tight">OCR</h1>
+                    <p class="text-[11px] text-gray-400">Landlord Portal</p>
+                </div>
+            </div>
+
+            <nav class="px-4 py-6 space-y-1">
+                <p class="px-3 pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Main</p>
+                <a href="{% url 'landlord_dashboard' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover">
+                    <i class="fas fa-th-large w-5 text-center"></i> Dashboard
+                </a>
+
+                <p class="px-3 pt-4 pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Properties</p>
+                <a href="{% url 'add_property' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover">
+                    <i class="fas fa-plus-circle w-5 text-center"></i> Add Property
+                </a>
+                <a href="{% url 'landlord_properties' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover">
+                    <i class="fas fa-building w-5 text-center"></i> My Properties
+                </a>
+
+                <p class="px-3 pt-4 pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Management</p>
+                <a href="{% url 'landlord_applications' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover">
+                    <i class="fas fa-file-alt w-5 text-center"></i> Applications
+                </a>
+                <a href="{% url 'messages_list' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover">
+                    <i class="fas fa-comments w-5 text-center"></i> Messages
+                </a>
+
+                <p class="px-3 pt-4 pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Account</p>
+                <a href="{% url 'landlord_profile' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium" style="background: linear-gradient(135deg, #1A56DB, #3B82F6); color: #fff; box-shadow: 0 4px 12px rgba(29,78,216,0.35);">
+                    <i class="fas fa-user-cog w-5 text-center"></i> Settings
+                </a>
+            </nav>
+        </div>
+
+        <div class="px-4 pb-6">
+            <a href="{% url 'logout' %}" class="flex items-center justify-center gap-2 text-gray-400 hover:text-white transition font-medium">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="ml-64 flex-1 flex flex-col min-h-screen">
+
+        <!-- Top Navbar -->
+        <header class="sticky top-0 z-30 bg-white border-b border-gray-200" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <div class="flex items-center justify-between h-16 px-8">
+                <div class="relative w-80">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                    <input type="text" placeholder="Search..."
+                           class="w-full pl-10 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+                </div>
+                <div class="flex items-center gap-4">
+                    <button class="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                        <i class="fas fa-bell text-lg"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                    <a href="{% url 'logout' %}" class="text-sm font-medium text-gray-600 hover:text-gray-800">Logout</a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="flex-1 p-8">
+            <div class="max-w-2xl mx-auto">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                    <h2 class="text-2xl font-bold mb-6" style="color: #1F2937;">
+                        <i class="fas fa-user-edit mr-2" style="color: #1A56DB;"></i>Edit Profile
+                    </h2>
+                    
+                    
+                    
+                    <form method="post" class="space-y-6">
+                        {% csrf_token %}
+                        <div class="space-y-4">
+                            <div>
+                                <label for="id_full_name" class="block text-sm font-medium mb-2" style="color: #374151;">Full Name</label>
+                                <input type="text" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition" 
+                                       id="id_full_name" name="full_name" value="{{ form.full_name.value|default:landlord.full_name }}">
+                            </div>
+                            <div>
+                                <label for="id_phone" class="block text-sm font-medium mb-2" style="color: #374151;">Phone</label>
+                                <input type="text" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition" 
+                                       id="id_phone" name="phone" value="{{ form.phone.value|default:landlord.phone }}">
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <button type="submit" class="px-6 py-3 rounded-xl font-bold transition" style="background: linear-gradient(135deg, #1A56DB, #3B82F6); color: #fff; box-shadow: 0 4px 12px rgba(29,78,216,0.35);">
+                                <i class="fas fa-save mr-2"></i>Save Changes
+                            </button>
+                            <a href="{% url 'landlord_dashboard' %}" class="px-6 py-3 rounded-xl font-bold transition" style="background: #F3F4F6; color: #374151;">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+
+{% block title %}OCR | Register{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-2xl w-full space-y-8 bg-white rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-all duration-500" style="border: 1px solid #E5E7EB;">
+        <div class="text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 mx-auto" style="background: linear-gradient(135deg, #1A56DB, #3B82F6); box-shadow: 0 8px 20px rgba(29,78,216,0.3);">
+                <i class="fas fa-user-plus text-white text-2xl"></i>
+            </div>
+            <h2 class="mt-2 text-3xl font-bold" style="color: #1F2937;">Create Account</h2>
+            <p class="mt-2 text-sm" style="color: #6B7280;">Join the OCR Management System</p>
+            <p class="mt-1 text-xs font-semibold" style="color: #1A56DB;">OCR</p>
+        </div>
+
+        <div class="rounded-lg p-4" style="background: #EFF6FF; border: 1px solid #BFDBFE;">
+            <div class="flex items-center">
+                <i class="fas fa-info-circle mr-2" style="color: #1A56DB;"></i>
+                <p class="text-sm" style="color: #1E40AF;">
+                    <strong>Important:</strong> Students must register using a valid school email address ending with <strong>@hcuc.edu.gh</strong>
+                </p>
+            </div>
+        </div>
+
+        <!-- Role Toggle -->
+        <div class="flex items-center rounded-xl overflow-hidden" style="border: 1px solid #E5E7GB;">
+            <button id="studentBtn"
+                    class="w-1/2 py-3 font-semibold text-sm transition-all duration-500"
+                    type="button" style="color: #1A56DB;">
+                Student
+            </button>
+            <button id="landlordBtn"
+                    class="w-1/2 py-3 font-semibold text-sm transition-all duration-500"
+                    type="button" style="color: #6B7280;">
+                Landlord
+            </button>
+        </div>
+
+        <form method="POST" class="space-y-5" id="registrationForm">
+            {% csrf_token %}
+            <input type="hidden" name="role" id="roleInput" value="{{ role|default:'student' }}">
+
+            <!-- Account Information -->
+            <div class="space-y-4">
+                <h5 class="text-lg font-semibold flex items-center" style="color: #1F2937;">
+                    <i class="fas fa-id-card-alt mr-2" style="color: #1A56DB;"></i>
+                    Account Information
+                </h5>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="id_email" class="block text-xs font-semibold uppercase tracking-wide" style="color: #6B7280;">Email Address</label>
+                        <div class="relative mt-1">
+                            <i class="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2" style="color: #1A56DB;"></i>
+                            <input type="email" class="block w-full pl-10 pr-4 py-3 rounded-xl border transition-all duration-500 placeholder-gray-400 focus:outline-none"
+                                   style="border-color: #D1D5DB; color: #1F2937; background: #F9FAFB;" id="id_email" name="email" placeholder="email@example.com" value="{{ form.email.value|default:'' }}" required>
+                        </div>
+                        {% if form.email.errors %}
+                            <p class="mt-1 text-xs" style="color: #DC2626;">{{ form.email.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="id_password" class="block text-xs font-semibold uppercase tracking-wide" style="color: #6B7280;">Password</label>
+                        <div class="relative mt-1">
+                            <i class="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2" style="color: #1A56DB;"></i>
+                            <input type="password" class="block w-full pl-10 pr-4 py-3 rounded-xl border transition-all duration-500 placeholder-gray-400 focus:outline-none"
+                                   style="border-color: #D1D5DB; color: #1F2937; background: #F9FAFB;" id="id_password" name="password" placeholder="Min. 8 characters" required>
+                        </div>
+                        {% if form.password.errors %}
+                            <p class="mt-1 text-xs" style="color: #DC2626;">{{ form.password.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div>
+                    <label for="id_confirm_password" class="block text-xs font-semibold uppercase tracking-wide" style="color: #6B7280;">Confirm Password</label>
+                    <div class="relative mt-1">
+                        <i class="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2" style="color: #1A56DB;"></i>
+                        <input type="password" class="block w-full pl-10 pr-4 py-3 rounded-xl border transition-all duration-500 placeholder-gray-400 focus:outline-none"
+                               style="border-color: #D1D5DB; color: #1F2937; background: #F9FAFB;" id="id_confirm_password" name="confirm_password" placeholder="Confirm password" required>
+                    </div>
+                    {% if form.confirm_password.errors %}
+                        <p class="mt-1 text-xs" style="color: #DC2626;">{{ form.confirm_password.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Student Details -->
+            <div id="studentSection" class="{% if role != 'student' %}hidden{% endif %} space-y-4">
+                <h5 class="text-lg font-semibold flex items-center" style="color: #1F2937;">
+                    <i class="fas fa-user-graduate mr-2" style="color: #1A56DB;"></i>
+                    Student Details
+                </h5>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="id_first_name" class="block text-xs font-semibold uppercase tracking-wide" style="color: #6B7280;">First Name</label>
+                        <input type="text" class="student-input block w-full px-4 py-3 rounded-xl border transition-all duration-500 placeholder-gray-400 focus:outline-none"
+                               style="border-color: #D1D5DB; color: #1F2937; background: #F9FAFB;" id="id_first_name" name="first_name" placeholder="First Name" value="{{ form.first_name.value|default:'' }}">
+                    </div>
+                    <div>
+                        <label for="id_last_name" class="block text-xs font-semibold uppercase tracking-wide" style="color: #6B7280;">Last Name</label>
+                        <input type="text" class="student-input block w-full px-4 py-3 rounded-xl border transition-all duration-500 placeholder-gray-400 focus:outline-none"
+                               style="border-color: #D1D5DB; color: #1F2937; background: #F9FAFB;" id="id_last_name" name="last_name" placeholder="Last Name" value="{{ form.last_name.value|default:'' }}">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="id_phone_student" class="block text-xs font-semibold uppercase tracking-wide" style="color: #6B7280;">Phone Number</label>
+                        <input type="text" class="student-input block w-full px-4 py-3 rounded-xl border transition-all duration-500 placeholder-gray-400 focus:outline-none"
+                               style="border-color: #D1D5DB; color: #1F2937; background: #F9FAFB;" id="id_phone_student" name="phone" placeholder="Phone Number" value="{{ form.phone.value|default:'' }}">
+                    </div>
+                    <div>
+                        <label for="id_gender" class="block text-xs font-semibold uppercase tracking-wide" style="color: #6B7280;">Gender</label>
+                        <select class="student-input block w-full px-4 py-3 rounded-xl border transition-all duration-500 focus:outline-none"
+                                style="border-color: #D1D5DB; color: #1F2937; background: #F9FAFB;" id="id_gender" name="gender">
+                            <option value="">Select Gender</option>
+                            <option value="male" {% if form.gender.value == 'male' %}selected{% endif %}>Male</option>
+                            <option value="female" {% if form.gender.value == 'female' %}selected{% endif %}>Female</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="id_level" class="block text-xs font-semibold uppercase tracking-wide" style="color: #6B7280;">Academic Level</label>
+                        <select class="student-input block w-full px-4 py-3 rounded-xl border transition-all duration-500 focus:outline-none"
+                                style="border-color: #D1D5DB; color: #1F2937; background: #F9FAFB;" id="id_level" name="level">
+                            <option value="">Select Level</option>
+                            <option value="100" {% if form.level.value == '100' %}selected{% endif %}>Level 100</option>
+                            <option value="200" {% if form.level.value == '200' %}selected{% endif %}>Level 200</option>
+                            <option value="300" {% if form.level.value == '300' %}selected{% endif %}>Level 300</option>
+                            <option value="400" {% if form.level.value == '400' %}selected{% endif %}>Level 400</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="id_department" class="block text-xs font-semibold uppercase tracking-wide" style="color: #6B7280;">Department</label>
+                        <input type="text" class="student-input block w-full px-4 py-3 rounded-xl border transition-all duration-500 placeholder-gray-400 focus:outline-none"
+                               style="border-color: #D1D5DB; color: #1F2937; background: #F9FAFB;" id="id_department" name="department" placeholder="Department" value="{{ form.department.value|default:'' }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Landlord Details -->
+            <div id="landlordSection" class="{% if role != 'landlord' %}hidden{% endif %} space-y-4">
+                <h5 class="text-lg font-semibold flex items-center" style="color: #1F2937;">
+                    <i class="fas fa-home mr-2" style="color: #1A56DB;"></i>
+                    Landlord Details
+                </h5>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="id_full_name" class="block text-xs font-semibold uppercase tracking-wide" style="color: #6B7280;">Full Name</label>
+                        <input type="text" class="landlord-input block w-full px-4 py-3 rounded-xl border transition-all duration-500 placeholder-gray-400 focus:outline-none"
+                               style="border-color: #D1D5DB; color: #1F2937; background: #F9FAFB;" id="id_full_name" name="full_name" placeholder="Full Name" value="{{ form.full_name.value|default:'' }}">
+                    </div>
+                    <div>
+                        <label for="id_phone_landlord" class="block text-xs font-semibold uppercase tracking-wide" style="color: #6B7280;">Phone Number</label>
+                        <input type="text" class="landlord-input block w-full px-4 py-3 rounded-xl border transition-all duration-500 placeholder-gray-400 focus:outline-none"
+                               style="border-color: #D1D5DB; color: #1F2937; background: #F9FAFB;" id="id_phone_landlord" name="phone" placeholder="Phone Number" value="{{ form.phone.value|default:'' }}">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="id_property_name" class="block text-xs font-semibold uppercase tracking-wide" style="color: #6B7280;">Property Name</label>
+                        <input type="text" class="landlord-input block w-full px-4 py-3 rounded-xl border transition-all duration-500 placeholder-gray-400 focus:outline-none"
+                               style="border-color: #D1D5DB; color: #1F2937; background: #F9FAFB;" id="id_property_name" name="property_name" placeholder="Property Name" value="{{ form.property_name.value|default:'' }}">
+                    </div>
+                    <div>
+                        <label for="id_property_location" class="block text-xs font-semibold uppercase tracking-wide" style="color: #6B7280;">Property Location</label>
+                        <input type="text" class="landlord-input block w-full px-4 py-3 rounded-xl border transition-all duration-500 placeholder-gray-400 focus:outline-none"
+                               style="border-color: #D1D5DB; color: #1F2937; background: #F9FAFB;" id="id_property_location" name="property_location" placeholder="Property Location" value="{{ form.property_location.value|default:'' }}">
+                    </div>
+                </div>
+            </div>
+
+            {% if form.non_field_errors %}
+                <div class="rounded-lg p-3" style="background: #FEF2F2; border: 1px solid #FECACA;">
+                    {% for error in form.non_field_errors %}
+                        <p class="text-xs" style="color: #DC2626;">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <button type="submit" class="w-full py-4 font-bold rounded-xl transition-all duration-300 hover:shadow-lg"
+                style="background: linear-gradient(135deg, #1A56DB, #3B82F6); color: #fff;">
+                <span>Complete Registration</span> <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+        </form>
+
+        <div class="text-center pt-4">
+            <p class="text-sm" style="color: #6B7280;">
+                Already have an account? <a href="{% url 'login' %}" class="font-semibold underline transition-all duration-300 hover:opacity-80" style="color: #1A56DB;">Login here</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const studentBtn = document.getElementById("studentBtn");
+    const landlordBtn = document.getElementById("landlordBtn");
+    const roleInput = document.getElementById("roleInput");
+    
+    const studentSection = document.getElementById("studentSection");
+    const landlordSection = document.getElementById("landlordSection");
+    
+    const studentInputs = document.querySelectorAll(".student-input");
+    const landlordInputs = document.querySelectorAll(".landlord-input");
+    
+    function updateFormState(role) {
+        roleInput.value = role;
+        
+        if (role === 'student') {
+            studentBtn.style.background = 'rgba(29,78,216,0.1)';
+            studentBtn.style.color = '#1A56DB';
+            landlordBtn.style.background = 'transparent';
+            landlordBtn.style.color = '#6B7280';
+            
+            studentSection.classList.remove("hidden");
+            landlordSection.classList.add("hidden");
+            
+            studentInputs.forEach(input => {
+                input.disabled = false;
+                input.required = true;
+            });
+            landlordInputs.forEach(input => {
+                input.disabled = true;
+                input.required = false;
+            });
+        } else {
+            landlordBtn.style.background = 'rgba(29,78,216,0.1)';
+            landlordBtn.style.color = '#1A56DB';
+            studentBtn.style.background = 'transparent';
+            studentBtn.style.color = '#6B7280';
+            
+            landlordSection.classList.remove("hidden");
+            studentSection.classList.add("hidden");
+            
+            landlordInputs.forEach(input => {
+                input.disabled = false;
+                input.required = true;
+            });
+            studentInputs.forEach(input => {
+                input.disabled = true;
+                input.required = false;
+            });
+        }
+    }
+
+    studentBtn.addEventListener("click", () => updateFormState('student'));
+    landlordBtn.addEventListener("click", () => updateFormState('landlord'));
+
+    document.addEventListener("DOMContentLoaded", () => {
+        updateFormState(roleInput.value);
+    });
+</script>
+{% endblock %}

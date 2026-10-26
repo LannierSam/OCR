@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - OCR Management System{% endblock %}
+
+{% block content %}
+<style>
+    .sidebar-hover { transition: all 0.3s ease; }
+    .sidebar-hover:hover { background-color: rgba(26, 86, 219, 0.12); padding-left: 1.5rem; }
+    .sidebar-link { transition: all 0.2s ease; }
+    .sidebar-link.active { background: linear-gradient(135deg, #1A56DB, #1d4ed8); box-shadow: 0 4px 12px rgba(26, 86, 219, 0.35); }
+    body > nav { display: none !important; }
+</style>
+
+<div class="flex min-h-screen" style="background-color: #F9FAFB;">
+
+    <!-- Sidebar -->
+    <aside class="w-64 flex flex-col justify-between fixed left-0 top-0 h-screen text-white" style="background-color: #0f172a; z-index: 40;">
+        <div>
+            <div class="flex items-center gap-3 px-6 py-6 border-b border-slate-800">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg">
+                    <i class="fas fa-cog text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white leading-tight">OCR</h1>
+                    <p class="text-[11px] text-slate-400">Admin Panel</p>
+                </div>
+            </div>
+
+            <nav class="px-4 py-6 space-y-1">
+                <p class="px-3 pb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Main</p>
+                <a href="{% url 'admin_dashboard' %}" class="sidebar-link active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white">
+                    <i class="fas fa-th-large w-5 text-center"></i> Dashboard
+                </a>
+
+                <p class="px-3 pt-4 pb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Management</p>
+                <a href="{% url 'admin_properties' %}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:text-white sidebar-hover">
+                    <i class="fas fa-building w-5 text-center"></i> Properties
+                </a>
+                <a href="{% url 'admin_applications' %}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:text-white sidebar-hover">
+                    <i class="fas fa-file-alt w-5 text-center"></i> Applications
+                </a>
+                <a href="{% url 'messages_list' %}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:text-white sidebar-hover">
+                    <i class="fas fa-comments w-5 text-center"></i> Messages
+                </a>
+                <a href="/admin/" target="_blank" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:text-white sidebar-hover">
+                    <i class="fas fa-tools w-5 text-center"></i> Django Admin
+                </a>
+            </nav>
+        </div>
+        <div class="px-4 pb-6"></div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="ml-64 flex-1 flex flex-col min-h-screen">
+
+        <!-- Top Navbar -->
+        <header class="sticky top-0 z-30 bg-white border-b border-gray-200" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <div class="flex items-center justify-between h-16 px-8">
+                <div class="relative w-80">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                    <input type="text" placeholder="Search properties, tenants..."
+                           class="w-full pl-10 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+                </div>
+                <div class="flex items-center gap-4">
+                    <button class="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                        <i class="fas fa-bell text-lg"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                    <div class="relative">
+                        <button onclick="toggleDropdown()" class="flex items-center gap-3 pl-3 pr-1 py-1 hover:bg-gray-50 rounded-lg transition">
+                            <div class="text-right">
+                                <p class="text-sm font-semibold text-gray-800 leading-tight">Admin</p>
+                                <p class="text-[11px] text-gray-500">Administrator</p>
+                            </div>
+                            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-semibold text-sm shadow">A</div>
+                            <i class="fas fa-chevron-down text-xs text-gray-400 mr-1"></i>
+                        </button>
+                        <div id="profileDropdown" class="hidden absolute right-0 top-full mt-1 w-56 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
+                            <div class="px-4 py-3 border-b border-gray-100">
+                                <p class="text-sm font-semibold text-gray-800">Admin</p>
+                                <p class="text-xs text-gray-500">{{ user.email }}</p>
+                            </div>
+                            <a href="/admin/" target="_blank" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50"><i class="fas fa-cog text-gray-400 w-4"></i> Django Admin</a>
+                            <hr class="border-gray-100">
+                            <a href="{% url 'logout' %}" class="flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50"><i class="fas fa-sign-out-alt text-red-500 w-4"></i> Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="flex-1 p-8 space-y-6 max-w-[1200px] mx-auto w-full">
+
+            <!-- Welcome Banner -->
+            <section class="rounded-2xl bg-gradient-to-r from-slate-900 to-slate-700 p-8 text-white shadow-xl">
+                <h2 class="text-3xl font-extrabold">Administrator Dashboard</h2>
+                <p class="mt-2 text-slate-300">Manage properties, applications, and system settings.</p>
+            </section>
+
+            <!-- Stat Cards -->
+            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Students</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">{{ total_students }}</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-user-graduate text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Landlords</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">{{ total_landlords }}</p>
+                        </div>
+                        <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-home text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Properties</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">{{ total_properties }}</p>
+                        </div>
+                        <div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-building text-purple-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Pending Approvals</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">{{ pending_properties }}</p>
+                        </div>
+                        <div class="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-hourglass-half text-orange-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Actions -->
+            <section class="grid grid-cols-1 md:grid-cols-4 gap-5">
+                <a href="{% url 'admin_properties' %}" class="block bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition group">
+                    <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                        <i class="fas fa-building text-blue-600"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900">Manage Properties</h3>
+                    <p class="text-gray-500 text-sm mt-1">Approve or reject listings</p>
+                </a>
+                <a href="{% url 'admin_applications' %}" class="block bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition group">
+                    <div class="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                        <i class="fas fa-file-alt text-purple-600"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900">Applications</h3>
+                    <p class="text-gray-500 text-sm mt-1">View all applications</p>
+                </a>
+                <a href="/admin/" target="_blank" class="block bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition group">
+                    <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                        <i class="fas fa-cogs text-gray-600"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900">Admin Panel</h3>
+                    <p class="text-gray-500 text-sm mt-1">Full system admin</p>
+                </a>
+                <a href="{% url 'messages_list' %}" class="block bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition group">
+                    <div class="w-10 h-10 bg-pink-50 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                        <i class="fas fa-comments text-pink-600"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900">Messages</h3>
+                    <p class="text-gray-500 text-sm mt-1">System messages</p>
+                </a>
+            </section>
+
+            <!-- Pending Summary -->
+            <section class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-hourglass-half text-orange-600"></i>
+                        </div>
+                        <h3 class="font-bold text-gray-900">Pending Property Approvals</h3>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">There are <strong>{{ pending_properties }}</strong> properties waiting for approval.</p>
+                    <a href="{% url 'admin_properties' %}?status=pending" class="inline-block text-white px-4 py-2 rounded-lg font-medium text-sm transition hover:opacity-90" style="background-color: #1A56DB;">View Pending Properties</a>
+                </div>
+                <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-file-alt text-blue-600"></i>
+                        </div>
+                        <h3 class="font-bold text-gray-900">Pending Applications</h3>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">There are <strong>{{ pending_applications }}</strong> applications waiting for review.</p>
+                    <a href="{% url 'admin_applications' %}" class="inline-block text-white px-4 py-2 rounded-lg font-medium text-sm transition hover:opacity-90" style="background-color: #1A56DB;">View Applications</a>
+                </div>
+            </section>
+
+        </main>
+    </div>
+</div>
+
+<script>
+function toggleDropdown() {
+    document.getElementById('profileDropdown').classList.toggle('hidden');
+}
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('[onclick="toggleDropdown()"]') && !e.target.closest('#profileDropdown')) {
+        document.getElementById('profileDropdown').classList.add('hidden');
+    }
+});
+</script>
+{% endblock %}

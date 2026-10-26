@@ -1,0 +1,479 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ property.property_name }} - OCR Management System{% endblock %}
+
+{% block content %}
+<style>
+    .sidebar-hover { transition: all 0.3s ease; }
+    .sidebar-hover:hover { background-color: rgba(26, 86, 219, 0.12); padding-left: 1.5rem; }
+    .sidebar-link { transition: all 0.2s ease; }
+    .sidebar-link.active { background: linear-gradient(135deg, #1A56DB, #1d4ed8); box-shadow: 0 4px 12px rgba(26, 86, 219, 0.35); }
+    body > nav { display: none !important; }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    /* Modal Styles */
+    #reviewModal { display: none; }
+    #reviewModal.open { display: flex; }
+    .star-rating i { cursor: pointer; transition: color 0.2s; }
+    .star-rating i.active { color: #FBBF24; }
+    .star-rating i:hover { transform: scale(1.1); }
+</style>
+
+<div class="flex min-h-screen" style="background-color: #F9FAFB;">
+
+    <!-- Left Sidebar (Main Navigation) -->
+    <aside class="w-64 flex flex-col justify-between fixed left-0 top-0 h-screen text-white" style="background-color: #111827; z-index: 40;">
+        <div>
+            <div class="flex items-center gap-3 px-6 py-6 border-b border-gray-800">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #1A56DB, #3B82F6);">
+                    <i class="fas fa-home text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white leading-tight">OCR</h1>
+                    <p class="text-[11px] text-gray-400">Student Portal</p>
+                </div>
+            </div>
+
+            <nav class="px-4 py-6 space-y-1">
+                <p class="px-3 pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Main</p>
+                <a href="{% url 'student_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'student_dashboard' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-th-large w-5 text-center"></i> Dashboard
+                </a>
+
+                <p class="px-3 pt-4 pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Housing</p>
+                <a href="{% url 'property_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'property_list' or request.resolver_match.url_name == 'property_detail' or request.resolver_match.url_name == 'apply_property' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-search w-5 text-center"></i> Browse Properties
+                </a>
+                <a href="{% url 'student_applications' %}" class="sidebar-link {% if request.resolver_match.url_name == 'student_applications' or request.resolver_match.url_name == 'student_allocations' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-file-alt w-5 text-center"></i> My Applications
+                </a>
+
+                <p class="px-3 pt-4 pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Account</p>
+                <a href="{% url 'messages_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'messages_list' or request.resolver_match.url_name == 'conversation' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-comments w-5 text-center"></i> Messages
+                </a>
+                <a href="{% url 'student_profile' %}" class="sidebar-link {% if request.resolver_match.url_name == 'student_profile' %}active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white{% else %}flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white sidebar-hover{% endif %}">
+                    <i class="fas fa-user-cog w-5 text-center"></i> Settings
+                </a>
+            </nav>
+        </div>
+        <div class="px-4 pb-6">
+            <a href="{% url 'logout' %}" class="flex items-center justify-center gap-2 text-gray-400 hover:text-white transition font-medium">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="ml-64 flex-1">
+        <div class="max-w-[1200px] mx-auto p-4 md:p-10">
+            
+            <!-- Breadcrumb -->
+            <nav class="flex mb-8 text-gray-400 text-xs font-bold uppercase tracking-widest" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-2">
+                    <li class="text-slate-900">{{ property.property_name }}</li>
+                </ol>
+            </nav>
+
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-10">
+                
+                <!-- Property Main Column -->
+                <div class="xl:col-span-2 space-y-10">
+                    
+                    <!-- Premium Image Gallery -->
+                    <div class="bg-white rounded-[40px] shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="relative h-[400px] md:h-[550px] bg-slate-50">
+                            {% if property.get_thumbnail %}
+                                {% if property.thumbnail_is_video %}
+                                <video id="mainDisplay" src="{{ property.get_thumbnail }}" class="w-full h-full object-cover" controls autoplay muted loop></video>
+                                {% else %}
+                                <img id="mainDisplay" src="{{ property.get_thumbnail }}" alt="{{ property.property_name }}" class="w-full h-full object-cover">
+                                {% endif %}
+                                
+                                <!-- Media Count Badge -->
+                                <div class="absolute bottom-6 right-6 bg-slate-900/60 backdrop-blur-md text-white px-4 py-2 rounded-2xl text-xs font-bold flex items-center gap-2 border border-white/10">
+                                    <i class="fas fa-camera text-blue-400"></i>
+                                    <span id="mediaCount">1 / {{ property.media_files.count|add:1 }}</span>
+                                </div>
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+                                    <i class="fas fa-home text-slate-200 text-8xl"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Thumbnail Row -->
+                        <div class="p-6 flex gap-4 overflow-x-auto scrollbar-hide">
+                            {% if property.image %}
+                            <div class="flex-shrink-0 w-28 h-20 rounded-2xl overflow-hidden border-2 border-[#4353FF] cursor-pointer shadow-sm hover:opacity-90 transition thumb-item active" 
+                                 data-url="{{ property.image.url|escapejs }}" 
+                                 data-index="1"
+                                 data-is-video="{% if property.is_video %}true{% else %}false{% endif %}" 
+                                 onclick="changeMedia(this);">
+                                {% if property.is_video %}
+                                <div class="w-full h-full bg-slate-900 flex items-center justify-center"><i class="fas fa-play text-white text-xs"></i></div>
+                                {% else %}
+                                <img src="{{ property.image.url }}" class="w-full h-full object-cover">
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            
+                            {% for media in property.media_files.all %}
+                            <div class="flex-shrink-0 w-28 h-20 rounded-2xl overflow-hidden border-2 {% if not property.image and forloop.first %}border-[#4353FF] active{% else %}border-transparent{% endif %} hover:border-blue-200 cursor-pointer shadow-sm transition thumb-item" 
+                                 data-url="{{ media.file.url|escapejs }}" 
+                                 data-index="{% if property.image %}{{ forloop.counter|add:1 }}{% else %}{{ forloop.counter }}{% endif %}"
+                                 data-is-video="{% if media.is_video %}true{% else %}false{% endif %}" 
+                                 onclick="changeMedia(this);">
+                                {% if media.is_video %}
+                                <div class="w-full h-full bg-slate-900 flex items-center justify-center"><i class="fas fa-play text-white text-xs"></i></div>
+                                {% else %}
+                                <img src="{{ media.file.url }}" class="w-full h-full object-cover">
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Property Info Section -->
+                    <div class="bg-white rounded-[40px] shadow-sm border border-gray-100 p-8 md:p-12 space-y-10">
+                        <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                            <div>
+                                <div class="flex items-center gap-2 mb-4">
+                                    <span class="bg-blue-50 text-blue-600 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-blue-100 flex items-center shadow-sm">
+                                        <i class="fas fa-user-tie mr-2 text-xs"></i> 
+                                        {{ property.landlord.landlord_profile.full_name|default:property.landlord.email }}
+                                    </span>
+                                </div>
+                                <h1 class="text-3xl md:text-5xl font-extrabold text-slate-900 leading-tight">{{ property.property_name }}</h1>
+                                <div class="flex items-center gap-2 text-gray-400 mt-4">
+                                    <i class="fas fa-map-marker-alt text-gray-300 text-lg"></i>
+                                    <span class="text-base font-medium">{{ property.location }}</span>
+                                </div>
+                            </div>
+                            <div class="flex items-baseline gap-1.5 bg-blue-50 px-6 py-4 rounded-3xl">
+                                <span class="text-3xl font-black text-[#4353FF]">GH₵ {{ property.price }}</span>
+                                <span class="text-blue-400 text-sm font-bold uppercase tracking-wider">/mo</span>
+                            </div>
+                        </div>
+
+                        <!-- Stats Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                            <div class="bg-[#F8FAFF] rounded-[32px] p-8 flex flex-col items-center justify-center text-center space-y-3 border border-[#EEF2FF] hover:border-blue-200 transition-colors">
+                                <i class="fas fa-bed text-2xl text-[#4353FF]"></i>
+                                <div>
+                                    <p class="text-3xl font-black text-slate-900">{{ property.total_rooms }}</p>
+                                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-1">Bedrooms</p>
+                                </div>
+                            </div>
+                            <div class="bg-[#F8FAFF] rounded-[32px] p-8 flex flex-col items-center justify-center text-center space-y-3 border border-[#EEF2FF] hover:border-blue-200 transition-colors">
+                                <i class="fas fa-bath text-2xl text-[#4353FF]"></i>
+                                <div>
+                                    <p class="text-3xl font-black text-slate-900">1</p>
+                                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-1">Bathrooms</p>
+                                </div>
+                            </div>
+                            <div class="bg-[#F8FAFF] rounded-[32px] p-8 flex flex-col items-center justify-center text-center space-y-3 border border-[#EEF2FF] hover:border-blue-200 transition-colors">
+                                <i class="fas fa-vector-square text-2xl text-[#4353FF]"></i>
+                                <div>
+                                    <p class="text-3xl font-black text-slate-900">450</p>
+                                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-1">Sq Ft</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-10 border-t border-gray-100">
+                            <h3 class="text-2xl font-bold text-slate-900 mb-6">Description</h3>
+                            <p class="text-gray-500 leading-relaxed text-lg">{{ property.description }}</p>
+                        </div>
+
+                        <div class="pt-10 border-t border-gray-100">
+                            <h3 class="text-2xl font-bold text-slate-900 mb-8">Amenities</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-12">
+                                <div class="flex items-center gap-4 text-gray-600 group">
+                                    <div class="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center transition group-hover:bg-emerald-500">
+                                        <i class="fas fa-check text-xs text-emerald-500 group-hover:text-white"></i>
+                                    </div>
+                                    <span class="font-bold text-slate-700">Pool Access</span>
+                                </div>
+                                <div class="flex items-center gap-4 text-gray-600 group">
+                                    <div class="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center transition group-hover:bg-emerald-500">
+                                        <i class="fas fa-check text-xs text-emerald-500 group-hover:text-white"></i>
+                                    </div>
+                                    <span class="font-bold text-slate-700">Fitness Center</span>
+                                </div>
+                                <div class="flex items-center gap-4 text-gray-600 group">
+                                    <div class="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center transition group-hover:bg-emerald-500">
+                                        <i class="fas fa-check text-xs text-emerald-500 group-hover:text-white"></i>
+                                    </div>
+                                    <span class="font-bold text-slate-700">High Speed WiFi</span>
+                                </div>
+                                <div class="flex items-center gap-4 text-gray-600 group">
+                                    <div class="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center transition group-hover:bg-emerald-500">
+                                        <i class="fas fa-check text-xs text-emerald-500 group-hover:text-white"></i>
+                                    </div>
+                                    <span class="font-bold text-slate-700">Private Study Room</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side Action Sidebar -->
+                <div class="space-y-8">
+                    <!-- Action Buttons Card -->
+                    <div class="bg-white rounded-[40px] shadow-sm border border-gray-100 p-8 space-y-4">
+                        <a href="{% url 'apply_property' property_id=property.id %}" class="w-full py-5 bg-[#4353FF] hover:bg-[#3242ee] text-white rounded-[24px] font-bold shadow-lg shadow-blue-100 hover:shadow-xl hover:shadow-blue-200 transition-all flex items-center justify-center text-xl">
+                            Apply Now
+                        </a>
+                        <button onclick="openMessageModal()" class="w-full py-5 bg-white border-2 border-gray-100 hover:border-blue-100 hover:text-[#4353FF] text-gray-700 rounded-[24px] font-bold transition-all flex items-center justify-center gap-3">
+                            <i class="far fa-comments text-xl text-gray-300"></i>
+                            Message Landlord
+                        </button>
+                        <button onclick="openReviewModal()" class="w-full py-5 bg-white border-2 border-gray-100 hover:border-gray-200 text-gray-700 rounded-[24px] font-bold transition-all flex items-center justify-center gap-3">
+                            <i class="far fa-star text-xl text-gray-300"></i>
+                            Leave a Review
+                        </button>
+                    </div>
+
+                    <!-- Availability Card -->
+                    <div class="bg-white rounded-[40px] shadow-sm border border-gray-100 p-10 space-y-8">
+                        <h3 class="text-xl font-bold text-slate-900">Availability</h3>
+                        <div class="flex items-center gap-5">
+                            <div class="w-16 h-16 bg-slate-50 rounded-[20px] flex items-center justify-center border border-gray-50">
+                                <i class="far fa-calendar-alt text-2xl text-gray-400"></i>
+                            </div>
+                            <div>
+                                <p class="text-gray-400 text-sm font-bold uppercase tracking-wider">Available from</p>
+                                <p class="text-slate-900 font-black text-xl">{{ property.created_at|date:"n/j/Y" }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Features List Card -->
+                    <div class="bg-white rounded-[40px] shadow-sm border border-gray-100 p-10 space-y-8">
+                        <h3 class="text-xl font-bold text-slate-900">Property Features</h3>
+                        <div class="space-y-6">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-400 font-bold uppercase text-xs tracking-wider">Pet Friendly</span>
+                                <span class="font-black text-slate-900 text-lg">Yes</span>
+                            </div>
+                            <div class="flex items-center justify-between border-t border-gray-50 pt-6">
+                                <span class="text-gray-400 font-bold uppercase text-xs tracking-wider">Parking Space</span>
+                                <span class="font-black text-slate-900 text-lg">Yes</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Message Landlord Modal -->
+    <div id="messageModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-[32px] w-full max-w-lg overflow-hidden shadow-2xl transform transition-all">
+                <div class="p-8">
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <h3 class="text-2xl font-black text-slate-900 tracking-tight">Message Landlord</h3>
+                            <p class="text-gray-500 font-medium mt-1">Inquire about {{ property.property_name }}</p>
+                        </div>
+                        <button onclick="closeMessageModal()" class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-slate-900 transition">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+
+                    <form action="{% url 'send_message' user_id=property.landlord.id %}" method="post">
+                        {% csrf_token %}
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Your Message</label>
+                                <textarea name="content" required rows="4" 
+                                          class="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-100 transition-all text-slate-900 placeholder-gray-400 font-medium"
+                                          placeholder="Hi, I'm interested in this property. Is it still available?"></textarea>
+                            </div>
+                            
+                            <div class="flex gap-4">
+                                <button type="button" onclick="closeMessageModal()" class="flex-1 py-4 bg-gray-50 text-gray-600 rounded-2xl font-bold hover:bg-gray-100 transition">
+                                    Cancel
+                                </button>
+                                <button type="submit" class="flex-[2] py-4 bg-[#4353FF] text-white rounded-2xl font-bold shadow-lg shadow-blue-100 hover:shadow-xl hover:shadow-blue-200 transition-all flex items-center justify-center gap-2">
+                                    <span>Send Message</span>
+                                    <i class="fas fa-paper-plane text-sm opacity-50"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Review Modal -->
+<div id="reviewModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-[32px] shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-300">
+        <div class="p-8 md:p-10">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-slate-900">Leave a Review</h2>
+                <button onclick="closeReviewModal()" class="text-gray-400 hover:text-gray-600 transition">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <form method="post" action="{% url 'add_review' property_id=property.id %}" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Star Rating -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-900 mb-3">Rating</label>
+                    <div class="star-rating flex gap-2 text-3xl">
+                        <i class="fas fa-star text-gray-200" data-rating="1"></i>
+                        <i class="fas fa-star text-gray-200" data-rating="2"></i>
+                        <i class="fas fa-star text-gray-200" data-rating="3"></i>
+                        <i class="fas fa-star text-gray-200" data-rating="4"></i>
+                        <i class="fas fa-star text-gray-200" data-rating="5"></i>
+                    </div>
+                    <input type="hidden" name="rating" id="id_rating" value="5">
+                </div>
+
+                <!-- Review Comment -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-900 mb-3">Review</label>
+                    {{ review_form.comment }}
+                </div>
+
+                <!-- Pros & Cons -->
+                <div class="grid grid-cols-1 gap-6">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-900 mb-3">Pros (optional)</label>
+                        {{ review_form.pros }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-900 mb-3">Cons (optional)</label>
+                        {{ review_form.cons }}
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-4 bg-[#1A1A1A] hover:bg-black text-white rounded-2xl font-bold transition-all text-lg shadow-xl shadow-gray-200">
+                    Post Review
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="page-data" data-media-count="{{ property.media_files.count }}" hidden></div>
+
+<script>
+    function openMessageModal() {
+        document.getElementById('messageModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeMessageModal() {
+        document.getElementById('messageModal').classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    function openReviewModal() {
+        document.getElementById('reviewModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeReviewModal() {
+        document.getElementById('reviewModal').classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    // Star Rating Logic
+    document.querySelectorAll('.star-rating i').forEach(star => {
+        star.addEventListener('click', function() {
+            const rating = this.getAttribute('data-rating');
+            document.getElementById('id_rating').value = rating;
+            
+            document.querySelectorAll('.star-rating i').forEach(s => {
+                if (s.getAttribute('data-rating') <= rating) {
+                    s.classList.add('active');
+                    s.classList.remove('text-gray-200');
+                } else {
+                    s.classList.remove('active');
+                    s.classList.add('text-gray-200');
+                }
+            });
+        });
+
+        // Hover effect (optional but nice)
+        star.addEventListener('mouseover', function() {
+            const rating = this.getAttribute('data-rating');
+            document.querySelectorAll('.star-rating i').forEach(s => {
+                if (s.getAttribute('data-rating') <= rating) {
+                    s.classList.add('text-yellow-400');
+                }
+            });
+        });
+
+        star.addEventListener('mouseout', function() {
+            const currentRating = document.getElementById('id_rating').value;
+            document.querySelectorAll('.star-rating i').forEach(s => {
+                if (s.getAttribute('data-rating') > currentRating) {
+                    s.classList.remove('text-yellow-400');
+                }
+            });
+        });
+    });
+
+    // Initialize stars (default 5)
+    function initStars() {
+        const rating = 5;
+        document.querySelectorAll('.star-rating i').forEach(s => {
+            if (s.getAttribute('data-rating') <= rating) {
+                s.classList.add('active');
+                s.classList.remove('text-gray-200');
+            }
+        });
+    }
+    initStars();
+
+    function changeMedia(thumbElement) {
+        const url = thumbElement.getAttribute('data-url');
+        const isVideo = thumbElement.getAttribute('data-is-video') === 'true';
+        const index = thumbElement.getAttribute('data-index');
+        const total = parseInt(document.getElementById('page-data').dataset.mediaCount) + 1;
+        
+        const display = document.getElementById('mainDisplay');
+        const parent = display.parentElement;
+        
+        display.remove();
+        
+        let newElem;
+        if (isVideo) {
+            newElem = document.createElement('video');
+            newElem.src = url;
+            newElem.controls = true;
+            newElem.autoplay = true;
+            newElem.muted = true;
+            newElem.loop = true;
+        } else {
+            newElem = document.createElement('img');
+            newElem.src = url;
+        }
+        
+        newElem.id = 'mainDisplay';
+        newElem.className = 'w-full h-full object-cover animate-in fade-in duration-500';
+        parent.insertBefore(newElem, document.getElementById('mediaCount').parentElement);
+
+        // Update count
+        document.getElementById('mediaCount').textContent = `${index} / ${total}`;
+
+        document.querySelectorAll('.thumb-item').forEach(el => {
+            el.classList.remove('border-[#4353FF]');
+            el.classList.add('border-transparent');
+        });
+        thumbElement.classList.remove('border-transparent');
+        thumbElement.classList.add('border-[#4353FF]');
+    }
+</script>
+{% endblock %}

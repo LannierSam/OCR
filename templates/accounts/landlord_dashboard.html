@@ -1,0 +1,340 @@
+{% extends 'base.html' %}
+
+{% block title %}Landlord Dashboard - OCR Management System{% endblock %}
+
+{% block content %}
+<style>
+    .sidebar-hover { transition: all 0.3s ease; }
+    .sidebar-hover:hover { background-color: rgba(26, 86, 219, 0.12); padding-left: 1.5rem; }
+    .sidebar-link { transition: all 0.2s ease; }
+    .sidebar-link.active { background: linear-gradient(135deg, #1A56DB, #1d4ed8); box-shadow: 0 4px 12px rgba(26, 86, 219, 0.35); }
+    /* Hide base nav */
+    body > nav { display: none !important; }
+</style>
+
+<div class="flex min-h-screen" style="background-color: #F9FAFB;">
+
+    <!-- Sidebar -->
+    <aside class="w-64 flex flex-col justify-between fixed left-0 top-0 h-screen text-white" style="background-color: #0f172a; z-index: 40;">
+        <div>
+            <div class="flex items-center gap-3 px-6 py-6 border-b border-slate-800">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg">
+                    <i class="fas fa-home text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white leading-tight">OCR</h1>
+                    <p class="text-[11px] text-slate-400">Landlord Portal</p>
+                </div>
+            </div>
+
+            <nav class="px-4 py-6 space-y-1">
+                <p class="px-3 pb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Main</p>
+                <a href="{% url 'landlord_dashboard' %}" class="sidebar-link active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white">
+                    <i class="fas fa-th-large w-5 text-center"></i> Dashboard
+                </a>
+
+                <p class="px-3 pt-4 pb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Properties</p>
+                <a href="{% url 'add_property' %}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:text-white sidebar-hover">
+                    <i class="fas fa-plus-circle w-5 text-center"></i> Add Property
+                </a>
+                <a href="{% url 'landlord_properties' %}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:text-white sidebar-hover">
+                    <i class="fas fa-building w-5 text-center"></i> My Properties
+                </a>
+
+                <p class="px-3 pt-4 pb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Management</p>
+                <a href="{% url 'landlord_applications' %}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:text-white sidebar-hover">
+                    <i class="fas fa-file-alt w-5 text-center"></i> Applications
+                </a>
+                <a href="{% url 'messages_list' %}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:text-white sidebar-hover">
+                    <i class="fas fa-comments w-5 text-center"></i> Messages
+                </a>
+
+                <p class="px-3 pt-4 pb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Account</p>
+                <a href="{% url 'landlord_profile' %}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:text-white sidebar-hover">
+                    <i class="fas fa-user-cog w-5 text-center"></i> Settings
+                </a>
+            </nav>
+        </div>
+
+        <div class="px-4 pb-6">
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="ml-64 flex-1 flex flex-col min-h-screen">
+
+        <!-- Top Navbar -->
+        <header class="sticky top-0 z-30 bg-white border-b border-gray-200" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <div class="flex items-center justify-between h-16 px-8">
+                <div class="relative w-80">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                    <input type="text" placeholder="Search properties, tenants..."
+                           class="w-full pl-10 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+                </div>
+                <div class="flex items-center gap-4">
+                    <button class="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                        <i class="fas fa-bell text-lg"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                    <div class="relative">
+                        <button onclick="toggleDropdown()" class="flex items-center gap-3 pl-3 pr-1 py-1 hover:bg-gray-50 rounded-lg transition">
+                            <div class="text-right">
+                                <p class="text-sm font-semibold text-gray-800 leading-tight">{{ landlord.full_name|default:user.email }}</p>
+                                <p class="text-[11px] text-gray-500">Landlord</p>
+                            </div>
+                            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-semibold text-sm shadow">
+                                {{ landlord.full_name|default:"L"|make_list|first }}
+                            </div>
+                            <i class="fas fa-chevron-down text-xs text-gray-400 mr-1"></i>
+                        </button>
+                        <div id="profileDropdown" class="hidden absolute right-0 top-full mt-1 w-56 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
+                            <div class="px-4 py-3 border-b border-gray-100">
+                                <p class="text-sm font-semibold text-gray-800">{{ landlord.full_name|default:user.email }}</p>
+                                <p class="text-xs text-gray-500">{{ user.email }}</p>
+                            </div>
+                            <a href="{% url 'landlord_profile' %}" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50"><i class="fas fa-user text-gray-400 w-4"></i> Profile</a>
+                            <hr class="border-gray-100">
+                            <a href="{% url 'logout' %}" class="flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50"><i class="fas fa-sign-out-alt text-red-500 w-4"></i> Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="flex-1 p-8 space-y-6 max-w-[1200px] mx-auto w-full">
+
+            <!-- Welcome Banner -->
+            <section class="rounded-2xl bg-gradient-to-r from-blue-900 to-blue-600 p-8 text-white shadow-xl">
+                <h2 class="text-3xl font-extrabold">Welcome back, {{ landlord.full_name }}!</h2>
+                <p class="mt-2 text-blue-200">Here's what's happening with your properties today.</p>
+            </section>
+
+            <!-- Landlord Code Alert -->
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-key text-blue-600"></i>
+                </div>
+                <div>
+                    <p class="font-bold text-blue-900 text-sm">Your Landlord Code</p>
+                    <p class="text-blue-700 text-sm">Share this code with students: <code class="bg-white px-2 py-0.5 rounded font-mono text-sm">{{ unique_code }}</code></p>
+                </div>
+            </div>
+
+            <!-- Stat Cards -->
+            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <!-- Total Revenue -->
+                <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Total Properties</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.total_properties }}</p>
+                            <p class="text-xs text-blue-600 font-medium mt-1"><i class="fas fa-building mr-1"></i>Active listings</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-dollar-sign text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Occupancy Rate -->
+                <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Total Applications</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.total_applications }}</p>
+                            <p class="text-xs text-green-600 font-medium mt-1"><i class="fas fa-file-alt mr-1"></i>From students</p>
+                        </div>
+                        <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-chart-pie text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pending Requests -->
+                <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Pending Applications</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.pending_applications }}</p>
+                            <p class="text-xs text-yellow-600 font-medium mt-1"><i class="fas fa-clock mr-1"></i>Awaiting review</p>
+                        </div>
+                        <div class="w-12 h-12 bg-yellow-50 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-hourglass-half text-yellow-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overdue Rent -->
+                <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Unread Messages</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.unread_messages }}</p>
+                            <p class="text-xs text-indigo-600 font-medium mt-1"><i class="fas fa-comments mr-1"></i>New inquiries</p>
+                        </div>
+                        <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Actions -->
+            <section class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <a href="{% url 'add_property' %}" class="block bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition group">
+                    <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                        <i class="fas fa-plus text-green-600"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900">Add Property</h3>
+                    <p class="text-gray-500 text-sm mt-1">Create a new listing</p>
+                </a>
+                <a href="{% url 'landlord_properties' %}" class="block bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition group">
+                    <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                        <i class="fas fa-building text-blue-600"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900">My Properties</h3>
+                    <p class="text-gray-500 text-sm mt-1">Manage your listings</p>
+                </a>
+                <a href="{% url 'messages_list' %}" class="block bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition group">
+                    <div class="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                        <i class="fas fa-comments text-indigo-600"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900">Messages</h3>
+                    <p class="text-gray-500 text-sm mt-1">Chat with students</p>
+                </a>
+            </section>
+
+            <!-- Recent Transactions Table -->
+            <section class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                    <h3 class="font-bold text-gray-900">Recent Transactions</h3>
+                    <a href="#" class="text-sm font-medium hover:underline" style="color: #1A56DB;">View All</a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="bg-gray-50 text-left">
+                                <th class="px-6 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Tenant</th>
+                                <th class="px-6 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Property</th>
+                                <th class="px-6 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Amount</th>
+                                <th class="px-6 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Date</th>
+                                <th class="px-6 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-semibold text-xs">KA</div>
+                                        <span class="font-medium text-gray-900">Kwame Asante</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600">Sunrise Hostel A3</td>
+                                <td class="px-6 py-4 font-semibold text-gray-900">GH₵ 450.00</td>
+                                <td class="px-6 py-4 text-gray-500">Mar 28, 2026</td>
+                                <td class="px-6 py-4"><span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">Paid</span></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-semibold text-xs">AM</div>
+                                        <span class="font-medium text-gray-900">Ama Mensah</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600">Green View B1</td>
+                                <td class="px-6 py-4 font-semibold text-gray-900">GH₵ 380.00</td>
+                                <td class="px-6 py-4 text-gray-500">Mar 25, 2026</td>
+                                <td class="px-6 py-4"><span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">Late</span></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-semibold text-xs">KO</div>
+                                        <span class="font-medium text-gray-900">Kofi Owusu</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600">Palm Heights C2</td>
+                                <td class="px-6 py-4 font-semibold text-gray-900">GH₵ 520.00</td>
+                                <td class="px-6 py-4 text-gray-500">Mar 22, 2026</td>
+                                <td class="px-6 py-4"><span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">Paid</span></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-700 font-semibold text-xs">EA</div>
+                                        <span class="font-medium text-gray-900">Efua Adjei</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600">Sunrise Hostel B2</td>
+                                <td class="px-6 py-4 font-semibold text-gray-900">GH₵ 400.00</td>
+                                <td class="px-6 py-4 text-gray-500">Mar 20, 2026</td>
+                                <td class="px-6 py-4"><span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">Pending</span></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-semibold text-xs">YA</div>
+                                        <span class="font-medium text-gray-900">Yaw Antwi</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600">Green View A4</td>
+                                <td class="px-6 py-4 font-semibold text-gray-900">GH₵ 350.00</td>
+                                <td class="px-6 py-4 text-gray-500">Mar 18, 2026</td>
+                                <td class="px-6 py-4"><span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">Paid</span></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-700 font-semibold text-xs">NA</div>
+                                        <span class="font-medium text-gray-900">Nana Akoto</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600">Palm Heights A1</td>
+                                <td class="px-6 py-4 font-semibold text-gray-900">GH₵ 480.00</td>
+                                <td class="px-6 py-4 text-gray-500">Mar 15, 2026</td>
+                                <td class="px-6 py-4"><span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">Late</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Landlord Information -->
+            <section class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                <h3 class="font-bold text-gray-900 mb-4">Landlord Information</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-xs text-gray-500 font-medium">Name</p>
+                        <p class="font-semibold text-gray-900 mt-1">{{ landlord.full_name }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-xs text-gray-500 font-medium">Phone</p>
+                        <p class="font-semibold text-gray-900 mt-1">{{ landlord.phone }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-xs text-gray-500 font-medium">Landlord ID</p>
+                        <p class="font-semibold text-gray-900 mt-1">{{ landlord.landlord_id }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-xs text-gray-500 font-medium">Unique Code</p>
+                        <p class="font-mono font-semibold mt-1" style="color: #1A56DB;">{{ unique_code }}</p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+</div>
+
+<script>
+function toggleDropdown() {
+    document.getElementById('profileDropdown').classList.toggle('hidden');
+}
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('[onclick="toggleDropdown()"]') && !e.target.closest('#profileDropdown')) {
+        document.getElementById('profileDropdown').classList.add('hidden');
+    }
+});
+</script>
+{% endblock %}

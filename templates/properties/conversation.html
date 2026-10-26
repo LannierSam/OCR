@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+
+{% block title %}Conversation with {{ other_user.email }} - OCR Management System{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<style>
+    .sidebar-hover { transition: all 0.3s ease; }
+    .sidebar-hover:hover { background-color: rgba(26, 86, 219, 0.12); padding-left: 1.5rem; }
+    .sidebar-link { transition: all 0.2s ease; }
+    .sidebar-link.active { background: linear-gradient(135deg, #1A56DB, #1d4ed8); box-shadow: 0 4px 12px rgba(26, 86, 219, 0.35); }
+    body > nav { display: none !important; }
+    
+    /* WhatsApp Style Bubbles */
+    .chat-bubble { 
+        max-width: 85%; 
+        padding: 8px 12px;
+        font-size: 14.5px;
+        line-height: 1.5;
+        box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+        margin-bottom: 4px;
+        display: flex;
+        flex-direction: column;
+    }
+    .chat-bubble p {
+        margin: 0;
+        word-wrap: break-word;
+        color: #111b21;
+    }
+    .chat-bubble-sent { 
+        background: #D9FDD3; 
+        border-radius: 8px 0 8px 8px;
+        margin-left: auto;
+    }
+    .chat-bubble-received { 
+        background: #FFFFFF; 
+        border-radius: 0 8px 8px 8px;
+        margin-right: auto;
+    }
+    
+    /* WhatsApp Style Background */
+    .chat-bg {
+        background-color: #efeae2;
+        background-image: url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png");
+        background-blend-mode: overlay;
+        background-size: 400px;
+        flex: 1;
+    }
+
+    .chat-container::-webkit-scrollbar { width: 6px; }
+    .chat-container::-webkit-scrollbar-track { background: transparent; }
+    .chat-container::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+    
+    .chat-item.active { background-color: #f0f2f5; }
+    .chat-item:hover:not(.active) { background-color: #f5f6f6; }
+    
+    .timestamp {
+        font-size: 10px;
+        color: #667781;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        align-self: flex-end;
+        margin-top: 2px;
+        margin-right: -4px;
+    }
+</style>
+
+<div class="flex h-screen overflow-hidden" style="background-color: #f0f2f5;">
+
+    <!-- Left Sidebar (App Navigation) -->
+    <aside class="w-16 lg:w-64 flex flex-col justify-between h-screen text-white flex-shrink-0" style="background-color: #111827; z-index: 50;">
+        <div>
+            <div class="flex items-center gap-3 px-3 lg:px-6 py-6 border-b border-gray-800">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, #1A56DB, #3B82F6);">
+                    <i class="fas fa-home text-white text-lg"></i>
+                </div>
+                <div class="hidden lg:block">
+                    <h1 class="text-xl font-bold text-white leading-tight">OCR</h1>
+                    <p class="text-[11px] text-gray-400">{% if request.user.role == 'landlord' %}Landlord{% else %}Student{% endif %} Portal</p>
+                </div>
+            </div>
+
+            <nav class="px-2 lg:px-4 py-6 space-y-1">
+                <a href="{% if request.user.role == 'landlord' %}{% url 'landlord_dashboard' %}{% else %}{% url 'student_dashboard' %}{% endif %}" 
+                   class="flex items-center justify-center lg:justify-start gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:text-white sidebar-hover" title="Dashboard">
+                    <i class="fas fa-th-large w-5 text-center"></i> <span class="hidden lg:block text-sm font-medium">Dashboard</span>
+                </a>
+                <a href="{% url 'messages_list' %}" class="sidebar-link active flex items-center justify-center lg:justify-start gap-3 px-3 py-2.5 rounded-lg text-white" title="Messages">
+                    <i class="fas fa-comments w-5 text-center"></i> <span class="hidden lg:block text-sm font-medium">Messages</span>
+                </a>
+            </nav>
+        </div>
+        <div class="px-2 lg:px-4 pb-6">
+            <a href="{% url 'logout' %}" class="flex items-center justify-center lg:justify-start gap-2 text-gray-400 hover:text-white transition font-medium" title="Logout">
+                <i class="fas fa-sign-out-alt lg:mr-2"></i> <span class="hidden lg:block">Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Chat Interface -->
+    <div class="flex-1 flex overflow-hidden">
+        
+        <!-- Chat List -->
+        <div class="hidden md:flex w-80 lg:w-[400px] flex-col bg-white border-r border-gray-200">
+            <!-- Search Header -->
+            <div class="p-4 bg-[#f0f2f5]">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-bold">
+                        {{ request.user.email|slice:":1"|upper }}
+                    </div>
+                    <div class="flex gap-4 text-gray-500">
+                        <i class="fas fa-circle-notch cursor-pointer"></i>
+                        <i class="fas fa-comment-alt cursor-pointer"></i>
+                        <i class="fas fa-ellipsis-v cursor-pointer"></i>
+                    </div>
+                </div>
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                    <input type="text" placeholder="Search or start new chat" 
+                           class="w-full pl-10 pr-4 py-2 bg-white border-none rounded-lg focus:ring-0 text-sm placeholder-gray-500">
+                </div>
+            </div>
+            
+            <!-- Conversation List -->
+            <div class="flex-1 overflow-y-auto chat-container">
+                {% for conv in conversations %}
+                <a href="{% url 'conversation' user_id=conv.user.id %}" 
+                   class="flex items-center gap-3 px-4 py-3 border-b border-gray-100 chat-item {% if conv.user.id == other_user.id %}active{% endif %}">
+                    <div class="relative flex-shrink-0">
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center text-white text-lg font-bold" style="background: #93a3b1;">
+                            {{ conv.user.email|slice:":1"|upper }}
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-[16px] text-[#111b21] font-normal truncate">
+                                {% if conv.user.is_student %}
+                                    {{ conv.user.student_profile.first_name }} {{ conv.user.student_profile.last_name }}
+                                {% elif conv.user.is_landlord %}
+                                    {{ conv.user.landlord_profile.full_name|default:conv.user.email }}
+                                {% else %}
+                                    {{ conv.user.email }}
+                                {% endif %}
+                            </h3>
+                            <span class="text-[12px] text-gray-500">{{ conv.last_message.timestamp|date:"D" }}</span>
+                        </div>
+                        <div class="flex items-center justify-between mt-1">
+                            <p class="text-[14px] text-gray-500 truncate flex items-center gap-1">
+                                {% if conv.last_message.sender_user == request.user %}
+                                <i class="fas fa-check-double text-[12px] text-blue-400"></i>
+                                {% endif %}
+                                {{ conv.last_message.content }}
+                            </p>
+                            {% if conv.unread > 0 %}
+                            <span class="bg-[#25d366] text-white text-[12px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                                {{ conv.unread }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Active Chat -->
+        <div class="flex-1 flex flex-col bg-[#e5ddd5] relative">
+            <!-- Header -->
+            <header class="bg-[#f0f2f5] h-16 flex items-center px-4 border-b border-gray-200 z-10">
+                <div class="flex items-center gap-3">
+                    <a href="{% url 'messages_list' %}" class="md:hidden text-gray-500 mr-2">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center text-white text-lg font-bold" style="background: #93a3b1;">
+                        {{ other_user.email|slice:":1"|upper }}
+                    </div>
+                    <div>
+                        <h2 class="text-[16px] font-medium text-[#111b21] leading-tight">
+                            {% if other_user.is_student %}
+                                {{ other_user.student_profile.first_name }} {{ other_user.student_profile.last_name }}
+                            {% elif other_user.is_landlord %}
+                                {{ other_user.landlord_profile.full_name|default:other_user.email }}
+                            {% else %}
+                                {{ other_user.email }}
+                            {% endif %}
+                        </h2>
+                        <p class="text-[13px] text-gray-500">online</p>
+                    </div>
+                </div>
+                <div class="ml-auto flex items-center gap-6 text-gray-500">
+                    <i class="fas fa-search cursor-pointer"></i>
+                    <i class="fas fa-ellipsis-v cursor-pointer"></i>
+                </div>
+            </header>
+
+            <!-- Messages Area -->
+            <div class="flex-1 overflow-y-auto p-4 lg:px-20 py-6 space-y-2 chat-bg" id="chatContainer">
+                {% for msg in messages %}
+                    <div class="flex flex-col {% if msg.sender_user == request.user %}items-end{% else %}items-start{% endif %}">
+                        <div class="chat-bubble {% if msg.sender_user == request.user %}chat-bubble-sent{% else %}chat-bubble-received{% endif %}">
+                            <p>{{ msg.content }}</p>
+                            <span class="timestamp">
+                                {{ msg.timestamp|date:"h:i A" }}
+                                {% if msg.sender_user == request.user %}
+                                <i class="fas fa-check-double ml-1 text-blue-400"></i>
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Input Bar -->
+            <div class="bg-[#f0f2f5] px-4 py-2 flex items-center gap-4">
+                <div class="flex gap-4 text-gray-500">
+                    <i class="far fa-smile text-2xl cursor-pointer"></i>
+                    <i class="fas fa-plus text-xl cursor-pointer"></i>
+                </div>
+                <form method="post" class="flex-1 flex items-center gap-3">
+                    {% csrf_token %}
+                    <input type="text" name="content" required placeholder="Type a message" autocomplete="off"
+                           class="flex-1 px-4 py-2 bg-white border-none rounded-lg focus:ring-0 text-[15px] placeholder-gray-500">
+                    <button type="submit" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-paper-plane text-xl"></i>
+                    </button>
+                </form>
+                <i class="fas fa-microphone text-xl text-gray-500 cursor-pointer"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const chatContainer = document.getElementById('chatContainer');
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+</script>
+
+{% endblock %}
